@@ -1,0 +1,4 @@
+-D rcs
+-D csharp
+--macro nullSafety("cscompiler")
+--macro cscompiler.CSCompilerInit.Start()
