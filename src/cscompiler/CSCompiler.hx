@@ -34,6 +34,12 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	}
 
 	/**
+		Called at the end of compilation.
+	**/
+	public override function onCompileEnd() {
+	}
+
+	/**
 		Required for adding semicolons at the end of each line. Overridden from Reflaxe.
 	**/
 	override function formatExpressionLine(expr: String): String {
