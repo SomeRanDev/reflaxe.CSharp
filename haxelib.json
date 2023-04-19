@@ -1,0 +1,25 @@
+{
+  "name": "csharp",
+  "version": "0.1.0",
+  "description": "A remake of the Haxe/C# target written entirely within Haxe using Reflaxe.",
+  "url": "https://github.com/RobertBorghese/reflaxe.CSharp",
+  "license": "MIT",
+  "tags": [
+    "custom-target",
+    "cs",
+    "csharp",
+    "dotnet",
+    "macro",
+    "compiler",
+    "target",
+    "native",
+    "metadata",
+    "externs"
+  ],
+  "dependencies": {
+    "reflaxe": "git:https://github.com/RobertBorghese/reflaxe"
+  },
+  "classPath": "src/",
+  "releasenote": "Initial release.",
+  "contributors": ["RobertBorghese"]
+}
