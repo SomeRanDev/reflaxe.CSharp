@@ -88,7 +88,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	// Allow defining a specific path for haxe executable.
 	// ------------------------------------
 	final haxeCmd = Sys.getEnv("REFLAXE_CS_TEST_HAXE_CMD");
-	if(haxeCmd.length > 0) {
+	if(haxeCmd != null && haxeCmd.length > 0) {
 		HaxeCommand = haxeCmd;
 	}
 
