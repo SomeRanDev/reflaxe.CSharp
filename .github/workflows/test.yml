@@ -1,10 +1,10 @@
 on:
   push:
     branches:
-      - main
+      - development
   pull_request:
     branches:
-      - main
+      - development
 
 jobs:
   build_ubuntu:
