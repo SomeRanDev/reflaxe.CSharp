@@ -5,6 +5,8 @@ final OUT_DIR = "out";
 final INTENDED_DIR = "intended";
 final BUILD_DIR = "build";
 
+var HaxeCommand = "haxe";
+
 var ShowAllOutput = false;
 var UpdateIntended = false;
 var NoDetails = false;
@@ -54,6 +56,9 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 		return;
 	}
 
+	// ------------------------------------
+	// Test options
+	// ------------------------------------
 	ShowAllOutput = args.contains("show-all-output");
 	UpdateIntended = args.contains("update-intended");
 	NoDetails = args.contains("no-details");
@@ -78,6 +83,14 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 			null;
 		}
 	}).filter(a -> a != null);
+
+	// ------------------------------------
+	// Allow defining a specific path for haxe executable.
+	// ------------------------------------
+	final haxeCmd = Sys.getEnv("REFLAXE_CS_TEST_HAXE_CMD");
+	if(haxeCmd.length > 0) {
+		HaxeCommand = haxeCmd;
+	}
 
 	// ------------------------------------
 	// Haxe compiling
@@ -191,7 +204,7 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 			return true;
 		}
 
-		final process = new sys.io.Process("\"../haxe/haxe\" " + args.join(" "));
+		final process = new sys.io.Process("\"" + HaxeCommand + "\" " + args.join(" "));
 		final _out = process.stdout.readAll();
 		final _in = process.stderr.readAll();
 
