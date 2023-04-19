@@ -21,13 +21,13 @@ class CSCompilerInit {
 		return;
 		#end
 
-		ReflectCompiler.AddCompiler(new UnboundCompiler(), {
+		ReflectCompiler.AddCompiler(new CSCompiler(), {
 			fileOutputExtension: ".cs",
 			outputDirDefineName: "cs-output",
 			fileOutputType: FilePerClass,
 			reservedVarNames: reservedNames(),
 			targetCodeInjectionName: "__cs__",
-			dynamicDCE: true,
+			smartDCE: true,
 			customStdMeta: [":csStd"],
 			trackUsedTypes: true,
 			allowMetaMetadata: true,
