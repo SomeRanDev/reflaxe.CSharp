@@ -8,11 +8,11 @@ import haxe.macro.Type;
 
 import haxe.display.Display.MetadataTarget;
 
+import reflaxe.BaseCompiler;
 import reflaxe.PluginCompiler;
 import reflaxe.compiler.EverythingIsExprSanitizer;
 import reflaxe.helpers.OperatorHelper;
 
-using reflaxe.helpers.BaseCompilerHelper;
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
@@ -31,6 +31,13 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		Called at the start of compilation.
 	**/
 	public override function onCompileStart() {
+	}
+
+	/**
+		Required for adding semicolons at the end of each line. Overridden from Reflaxe.
+	**/
+	override function formatExpressionLine(expr: String): String {
+		return expr + ";";
 	}
 
 	/**
@@ -89,7 +96,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		// Functions
 		for(f in funcFields) {
 			final field = f.field;
-			final tfunc = f.tfunc;
+			final data = f.data;
 
 			// Compile name
 			final name = field.name == "new" ? csClassName : compileVarName(field.name);
@@ -106,17 +113,22 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 				variables.push(decl);
 			} else {
 				// Compile arguments
-				final arguments = tfunc.args.map(compileFunctionArgument).join(", ");
+				// I don't know why this requires two different versions, needs to be fixed in Reflaxe.
+				final arguments = if(data.tfunc != null) {
+					data.tfunc.args.map(a -> compileFunctionArgument(a.v.t, a.v.name, field.pos, a.value));
+				} else {
+					data.args.map(a -> compileFunctionArgument(a.t, a.name, field.pos, null));
+				}
 
 				// Compile return type
-				final ret = compileType(data.ret);
+				final ret = compileType(data.ret, field.pos);
 
 				// Compile expression - Use `data.expr` instead of `field.expr()`
 				// since it gives us the contents of the function.
-				final csExpr = Main.compileClassFuncExpr(data.expr);
+				final csExpr = compileClassFuncExpr(data.expr);
 				
 				// Put it all together to make the C# function
-				final func = meta + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments + ") " + "{\n" + csExpr.tab() + "\n}";
+				final func = meta + "public " + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments.join(", ") + ") " + "{\n" + csExpr.tab() + "\n}";
 				functions.push(func);
 			}
 		}
@@ -129,29 +141,49 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 
 		// Let's put everything together to make the C# class!
 		return {
-			var result = declaration + "{\n";
+			final content = [];
 
 			if(variables.length > 0) {
-				result += variables.join("\n\n") + "\n\n";
+				content.push(variables.map(v -> v.tab()).join("\n\n"));
 			}
 
 			if(functions.length > 0) {
-				result += functions.join("\n\n") + "\n\n";
+				content.push(functions.map(v -> v.tab()).join("\n\n"));
 			}
 
-			result += "\n}";
-
+			var result = declaration + " {\n";
+			result += content.join("\n\n");
+			result += "\n}\n";
 			result;
+		}
+	}
+
+	/**
+		Generates the C# type from `haxe.macro.Type`.
+
+		A `Position` is provided so compilation errors can be reported to it.
+	**/
+	function compileType(type: Type, pos: Position): String {
+		return switch(type) {
+			case TAbstract(_.get() => { name: "Void" }, []): {
+				"void";
+			}
+			case TAbstract(_.get() => { name: "Int" }, []): {
+				"int";
+			}
+			case _: {
+				"UNKNOWN_TYPE";
+			}
 		}
 	}
 
 	/**
 		Generate the C# output for a function argument.
 	**/
-	function compileFunctionArgument(arg: { v: TVar, value: Null<TypedExpr> }) {
-		var result = compileVarName(arg.v.name);
-		if(arg.value != null) {
-			result += " = " + compileExpression(arg.value);
+	function compileFunctionArgument(t: Type, name: String, pos: Position, expr: Null<TypedExpr> = null) {
+		var result = compileType(t, pos) + " " + compileVarName(name);
+		if(expr != null) {
+			result += " = " + compileExpression(expr);
 		}
 		return result;
 	}
@@ -238,7 +270,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 				// TODO: Lambda?
 			}
 			case TVar(tvar, maybeExpr): {
-				result = "var " + compileVarName(tvar.name, maybeExpr);
+				result = compileType(tvar.t, expr.pos) + " " + compileVarName(tvar.name, maybeExpr);
 
 				// Not guaranteed to have expression, be careful!
 				if(maybeExpr != null) {
@@ -249,7 +281,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 			case TBlock(expressionList): {
 				// TODO: Should we still generate even if empty?
 				if(expressionList.length > 0) {
-					result = "{\n" + toIndentedScope(expressionList) + "\n}";
+					result = "{\n" + toIndentedScope(expr) + "\n}";
 				}
 			}
 			case TFor(tvar, iterExpr, blockExpr): {
@@ -294,13 +326,13 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 				}
 			}
 			case TTry(e, catches): {
-				result += "try {\n"
+				result += "try {\n";
 				result += toIndentedScope(e);
 				result += "\n}";
 				// TODO: Might need to guarantee Haxe exception type?
 				// Use PlatformConfig
 				for(c in catches) {
-					result += "catch(" + compileFunctionArgument({ v: c.v, value: null }) + ") {\n";
+					result += "catch(" + compileFunctionArgument(c.v.t, c.v.name, expr.pos, null) + ") {\n";
 					result += toIndentedScope(c.expr);
 					result += "\n}";
 				}
@@ -361,14 +393,17 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		Each line of the output is preemptively tabbed.
 	**/
 	function toIndentedScope(e: TypedExpr): String {
+		final comExpr = e -> {
+			final cs = compileExpression(e);
+			return cs == null ? null : (cs.tab() + ";");
+		};
+
 		return switch(e.expr) {
-			case TBlock(el): {
-				if(el.length > 0) {
-					el.map(e -> compileExpression(e).tab()).join("\n");
-				}
+			case TBlock(expressionList): {
+				expressionList.map(comExpr).join("\n");
 			}
 			case _: {
-				compileExpression(e).tab();
+				comExpr(e);
 			}
 		}
 	}
@@ -468,7 +503,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		if(elseExpr != null) {
 			switch(elseExpr.expr) {
 				case TIf(condExpr2, ifContentExpr2, elseExpr2): {
-					result += "\n} else " + compileIf(condExpr2, ifContentExpr2, elseExpr2);
+					result += "\n} else " + compileIfToCs(condExpr2, ifContentExpr2, elseExpr2);
 				}
 				case _: {
 					result += "\n} else {\n";
