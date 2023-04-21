@@ -123,7 +123,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		(i.e. for cast or static access).
 	**/
 	public function compileModuleType(m: ModuleType): String {
-		return typeComp.compileModule(m);
+		return typeComp.compileModuleExpression(m);
 	}
 
 	/**
