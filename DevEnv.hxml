@@ -1,0 +1,9 @@
+# DevEnv.hxml
+# Makes auto-completion and null-safety(?) work in VS code while developing this project.
+-D reflaxe_runtime
+-D cs_runtime
+--macro nullSafety("cscompiler")
+-lib reflaxe
+-cp src
+cscompiler.CSCompiler
+cscompiler.components.CSBase
