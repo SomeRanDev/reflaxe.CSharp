@@ -36,7 +36,7 @@ class CSType extends CSBase {
 				withTypeParams(compileClassName(clsRef.get()), params, pos);
 			}
 			case TType(_, _): {
-				compile(Context.follow(type), pos);
+				compile(#if macro Context.follow(type) #else type #end, pos);
 			}
 			case TFun(args, ref): {
 				// TODO
@@ -54,7 +54,7 @@ class CSType extends CSBase {
 				compile(callback(), pos);
 			}
 			case TAbstract(absRef, params): {
-				checkPrimitiveType(absRef.get(), params) ?? compile(Context.followWithAbstracts(type), pos);
+				checkPrimitiveType(absRef.get(), params) ?? compile(#if macro Context.followWithAbstracts(type) #else type #end, pos);
 			}
 		}
 	}

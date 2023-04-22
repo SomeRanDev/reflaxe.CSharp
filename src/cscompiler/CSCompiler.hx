@@ -62,11 +62,14 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 
 		See the `cscompiler.components` package for more info.
 	**/
-	function createComponents() {
-		classComp = new CSClass(this);
-		enumComp = new CSEnum(this);
-		exprComp = new CSExpression(this);
-		typeComp = new CSType(this);
+	inline function createComponents() {
+		// Bypass Haxe null-safety not allowing `this` usage.
+		@:nullSafety(Off) var self = this;
+
+		classComp = new CSClass(self);
+		enumComp = new CSEnum(self);
+		exprComp = new CSExpression(self);
+		typeComp = new CSType(self);
 	}
 
 	// ---
@@ -75,7 +78,6 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		Called at the start of compilation.
 	**/
 	public override function onCompileStart() {
-		createComponents();
 	}
 
 	/**
@@ -115,7 +117,11 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		A `Position` is provided so compilation errors can be reported to it.
 	**/
 	public function compileType(type: Type, pos: Position): String {
-		return typeComp.compile(type, pos);
+		final result = typeComp.compile(type, pos);
+		if(result == null) {
+			throw "Type could not be generated: " + Std.string(type);
+		}
+		return result;
 	}
 
 	/**

@@ -321,7 +321,7 @@ class CSExpression extends CSBase {
 		}
 	}
 
-	function compileIf(condExpr: TypedExpr, ifContentExpr: TypedExpr, elseExpr: TypedExpr) {
+	function compileIf(condExpr: TypedExpr, ifContentExpr: TypedExpr, elseExpr: Null<TypedExpr>) {
 		var result = "if(" + _compileExpression(condExpr.unwrapParenthesis()) + ") {\n";
 		result += toIndentedScope(ifContentExpr);
 		if(elseExpr != null) {
