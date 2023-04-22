@@ -78,7 +78,6 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		Called at the start of compilation.
 	**/
 	public override function onCompileStart() {
-		createComponents();
 	}
 
 	/**
