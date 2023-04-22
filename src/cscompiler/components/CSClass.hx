@@ -28,7 +28,7 @@ class CSClass extends CSBase {
 		var declaration = "";
 
 		// Compile metadata (built-in Reflaxe function)
-		final clsMeta = compiler.compileMetadata(classType.meta, MetadataTarget.Class);
+		final clsMeta = compiler.compileMetadata(classType.meta, MetadataTarget.Class) ?? "";
 		declaration += clsMeta;
 
 		// Basic declaration
@@ -45,14 +45,15 @@ class CSClass extends CSBase {
 			final varName = compiler.compileVarName(field.name, null, field);
 
 			// Compile expression
-			final csExpr = if(field.expr() != null) {
-				compiler.compileClassVarExpr(field.expr());
+			final e = field.expr();
+			final csExpr = if(e != null) {
+				compiler.compileClassVarExpr(e);
 			} else {
 				"";
 			}
 
 			// Compile metadata
-			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField);
+			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
 			// Put it all together to make C# variable
 			final decl = meta + (v.isStatic ? "static " : "") + "var " + varName + (csExpr.length == 0 ? "" : (" = " + csExpr));
@@ -68,15 +69,18 @@ class CSClass extends CSBase {
 			final name = field.name == "new" ? csClassName : compiler.compileVarName(field.name);
 
 			// Compile metadata
-			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField);
+			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
 			// If a dynamic function, we want to compile as function variable.
 			if(f.kind == MethDynamic) {
 				// `field.expr()` gives an expression of as TypedExprDef.TFunction,
 				// so we don't need to do anything special to compile it as a lambda.
-				final callable = compiler.compileClassVarExpr(field.expr());
-				final decl = meta + (f.isStatic ? "static " : "") + "var " + name + " = " + callable;
-				variables.push(decl);
+				final e = field.expr();
+				if(e != null) {
+					final callable = compiler.compileClassVarExpr(e);
+					final decl = meta + (f.isStatic ? "static " : "") + "var " + name + " = " + callable;
+					variables.push(decl);
+				}
 			} else {
 				// Compile arguments
 				// I don't know why this requires two different versions, needs to be fixed in Reflaxe.
@@ -91,10 +95,17 @@ class CSClass extends CSBase {
 
 				// Compile expression - Use `data.expr` instead of `field.expr()`
 				// since it gives us the contents of the function.
-				final csExpr = compiler.compileClassFuncExpr(data.expr);
+				final csExpr = {
+					if(data.expr != null) {
+						final code = compiler.compileClassFuncExpr(data.expr);
+						"{\n" + code.tab() + "\n}";
+					} else {
+						";";
+					}
+				}
 				
 				// Put it all together to make the C# function
-				final func = meta + "public " + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments.join(", ") + ") " + "{\n" + csExpr.tab() + "\n}";
+				final func = meta + "public " + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
 				functions.push(func);
 			}
 		}
