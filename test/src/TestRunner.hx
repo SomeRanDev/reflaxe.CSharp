@@ -134,7 +134,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 
 	Sys.println("\n===========\nTesting C# Compilation\n===========\n");
 
-	if(systemName != "Windows" && systemName != "Linux") {
+	if(systemName != "Windows" && systemName != "Linux" && systemName != "Mac") {
 		Sys.println("C# compilation test not supported for `" + systemName + "`");
 		return;
 	}
