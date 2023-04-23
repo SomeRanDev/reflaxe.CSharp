@@ -96,6 +96,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	// Haxe compiling
 	// ------------------------------------
 	var tests = checkAndReadDir(TEST_DIR);
+	tests = tests.filter(t -> t != '.DS_Store');
 	if(allowedTests.length > 0) {
 		tests = tests.filter(t -> allowedTests.contains(t));
 		if(tests.length <= 0) {
