@@ -152,12 +152,60 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 		}
 		return result;
 	}
-  
+
 	/**
 		Generate the C# output given the Haxe typed expression (`TypedExpr`).
 	**/
 	public function compileExpressionImpl(expr: TypedExpr): Null<String> {
 		return exprComp.compile(expr);
+	}
+
+	/**
+		Get a C# namespace for the given package
+	**/
+	public function packToNameSpace(pack: Array<String>):String {
+		if (pack != null) {
+			var csPack = [].concat(pack);
+
+			inline function shouldExcludeLastPackItem(item: String):Bool {
+				return item.toLowerCase() != item;
+			}
+
+			while (csPack.length > 0 && shouldExcludeLastPackItem(csPack[csPack.length - 1])) {
+				csPack.pop();
+			}
+
+			if (csPack.length > 0) {
+				return csPack.join(".");
+			}
+		}
+		return "haxe.root";
+	}
+
+	/**
+		Wrap a block of code with the given name space
+	**/
+	public function wrapNameSpace(nameSpace: String, s: String):String {
+		return "namespace " + nameSpace + " {\n" + StringTools.rtrim(s.tab()) + "\n}\n";
+	}
+
+	/**
+		Remove blank white space at the end of each line,
+		and trim empty lines.
+	**/
+	public function cleanWhiteSpaces(s: String):String {
+
+		// Temporary workaround.
+
+		// TODO: edit reflaxe SyntaxHelper.tab() so that it
+		// doesn't add spaces/tabs to empty lines when indenting
+		// a block, and make this method not needed anymore
+
+		final lines = s.split("\n");
+		for(i in 0...lines.length) {
+			lines[i] = StringTools.rtrim(lines[i]);
+		}
+		return lines.join("\n");
 	}
 }
 

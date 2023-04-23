@@ -25,6 +25,9 @@ class CSClass extends CSBase {
 		final className = classType.name;
 		final csClassName = compiler.compileClassName(classType);
 
+		final classPack = classType.pack;
+		final csNameSpace = compiler.packToNameSpace(classPack);
+
 		var declaration = "";
 
 		// Compile metadata (built-in Reflaxe function)
@@ -103,7 +106,7 @@ class CSClass extends CSBase {
 						";";
 					}
 				}
-				
+
 				// Put it all together to make the C# function
 				final func = meta + "public " + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
 				functions.push(func);
@@ -131,6 +134,10 @@ class CSClass extends CSBase {
 			var result = declaration + " {\n";
 			result += content.join("\n\n");
 			result += "\n}\n";
+
+			result = compiler.wrapNameSpace(csNameSpace, result);
+			result = compiler.cleanWhiteSpaces(result);
+
 			result;
 		}
 	}
