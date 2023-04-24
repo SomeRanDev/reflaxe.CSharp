@@ -47,6 +47,9 @@ class CSClass extends CSBase {
 			// Compile name
 			final varName = compiler.compileVarName(field.name, null, field);
 
+			// Compile type
+			final varType = compiler.compileType(field.type, field.pos);
+
 			// Compile expression
 			final e = field.expr();
 			final csExpr = if(e != null) {
@@ -59,7 +62,7 @@ class CSClass extends CSBase {
 			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
 			// Put it all together to make C# variable
-			final decl = meta + (v.isStatic ? "static " : "") + "var " + varName + (csExpr.length == 0 ? "" : (" = " + csExpr));
+			final decl = meta + (v.isStatic ? "static " : "") + (varType ?? "var") + " " + varName + (csExpr.length == 0 ? "" : (" = " + csExpr)) + ";";
 			variables.push(decl);
 		}
 
