@@ -72,7 +72,7 @@ class CSType extends CSBase {
 		return switch(absType.name) {
 			case "Void": "void";
 			case "Int": "int";
-			case "UInt": "unit";
+			case "UInt": "uint";
 			case "Float": "double";
 			case "Bool": "bool";
 			case _: null;
