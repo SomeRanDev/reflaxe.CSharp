@@ -54,7 +54,23 @@ class CSType extends CSBase {
 				compile(callback(), pos);
 			}
 			case TAbstract(absRef, params): {
-				checkPrimitiveType(absRef.get(), params) ?? compile(#if macro Context.followWithAbstracts(type) #else type #end, pos);
+				var absType = absRef.get();
+				var primitiveType = checkPrimitiveType(absType, params);
+
+				if (primitiveType != null) {
+					primitiveType;
+				}
+				else if (absType.name == "Null") {
+					if (params != null && params.length > 0 && isValueType(params[0])) {
+						compile(params[0], pos) + "?";
+					}
+					else {
+						compile(params[0], pos);
+					}
+				}
+				else {
+					compile(#if macro Context.followWithAbstracts(type) #else type #end, pos);
+				}
 			}
 		}
 	}
@@ -76,6 +92,29 @@ class CSType extends CSBase {
 			case "Float": "double";
 			case "Bool": "bool";
 			case _: null;
+		}
+	}
+
+	/**
+		Returns `true` if the given type is a **value type**.
+		A **value type** is either a primitive type or a (C#) struct type.
+	**/
+	function isValueType(type: Type): Bool {
+		return switch type {
+			case TInst(t, params):
+				// TODO classes with @:structAccess
+				false;
+			case TAbstract(absRef, params):
+				final absType = absRef.get();
+				final primitiveType = checkPrimitiveType(absType, params);
+				if (primitiveType != null) {
+					true;
+				}
+				else {
+					#if macro isValueType(Context.followWithAbstracts(type)) #else false #end;
+				}
+			case _:
+				false;
 		}
 	}
 
