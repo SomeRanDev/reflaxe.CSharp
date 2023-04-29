@@ -2,8 +2,6 @@ package cscompiler;
 
 #if (macro || cs_runtime)
 
-import haxe.macro.Context;
-
 import reflaxe.ReflectCompiler;
 import reflaxe.input.ClassModifier;
 

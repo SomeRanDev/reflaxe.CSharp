@@ -2,7 +2,7 @@ package cscompiler.components;
 
 #if (macro || cs_runtime)
 
-import haxe.macro.Context;
+import reflaxe.helpers.Context; // same as haxe.macro.Context
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
@@ -36,7 +36,7 @@ class CSType extends CSBase {
 				withTypeParams(compileClassName(clsRef.get()), params, pos);
 			}
 			case TType(_, _): {
-				compile(#if macro Context.follow(type) #else type #end, pos);
+				compile(Context.follow(type), pos);
 			}
 			case TFun(args, ref): {
 				// TODO
@@ -69,7 +69,7 @@ class CSType extends CSBase {
 					}
 				}
 				else {
-					compile(#if macro Context.followWithAbstracts(type) #else type #end, pos);
+					compile(Context.followWithAbstracts(type), pos);
 				}
 			}
 		}
@@ -111,7 +111,7 @@ class CSType extends CSBase {
 					true;
 				}
 				else {
-					#if macro isValueType(Context.followWithAbstracts(type)) #else false #end;
+					isValueType(Context.followWithAbstracts(type));
 				}
 			case _:
 				false;
