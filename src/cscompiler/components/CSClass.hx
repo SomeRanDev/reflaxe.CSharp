@@ -89,12 +89,7 @@ class CSClass extends CSBase {
 				}
 			} else {
 				// Compile arguments
-				// I don't know why this requires two different versions, needs to be fixed in Reflaxe.
-				final arguments = if(data.tfunc != null) {
-					data.tfunc.args.map(a -> compiler.compileFunctionArgument(a.v.t, a.v.name, field.pos, a.value));
-				} else {
-					data.args.map(a -> compiler.compileFunctionArgument(a.t, a.name, field.pos, null));
-				}
+				final arguments = data.args.map(a -> compiler.compileFunctionArgument(a.t, a.name, field.pos, a.opt, a.expr));
 
 				// Compile return type
 				final ret = compiler.compileType(data.ret, field.pos);

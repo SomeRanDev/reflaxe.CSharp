@@ -143,11 +143,16 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 
 	/**
 		Generate the C# output for a function argument.
+
+		Note: it's possible for an argument to be optional but not have an `expr`.
 	**/
-	public function compileFunctionArgument(t: Type, name: String, pos: Position, expr: Null<TypedExpr> = null) {
+	public function compileFunctionArgument(t: Type, name: String, pos: Position, optional: Bool, expr: Null<TypedExpr> = null) {
 		var result = compileType(t, pos) + " " + compileVarName(name);
 		if(expr != null) {
 			result += " = " + compileExpression(expr);
+		} else {
+			// TODO: ensure type is nullable
+			result += " = null";
 		}
 		return result;
 	}
