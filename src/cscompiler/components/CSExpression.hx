@@ -156,7 +156,7 @@ class CSExpression extends CSBase {
 				// TODO: Might need to guarantee Haxe exception type?
 				// Use PlatformConfig
 				for(c in catches) {
-					result += "catch(" + compiler.compileFunctionArgument(c.v.t, c.v.name, expr.pos, null) + ") {\n";
+					result += "catch(" + compiler.compileFunctionArgument(c.v.t, c.v.name, expr.pos, false, null) + ") {\n";
 					result += toIndentedScope(c.expr);
 					result += "\n}";
 				}
