@@ -9,6 +9,9 @@ import haxe.macro.Type;
 
 import reflaxe.BaseCompiler;
 import reflaxe.PluginCompiler;
+import reflaxe.data.ClassVarData;
+import reflaxe.data.ClassFuncData;
+import reflaxe.data.EnumOptionData;
 import reflaxe.helpers.OperatorHelper;
 
 using reflaxe.helpers.SyntaxHelper;
@@ -97,14 +100,14 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	/**
 		Generate the C# output given the Haxe class information.
 	**/
-	public function compileClassImpl(classType: ClassType, varFields: ClassFieldVars, funcFields: ClassFieldFuncs): Null<String> {
+	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
 		return classComp.compile(classType, varFields, funcFields);
 	}
 
 	/**
 		Generate the C# output given the Haxe enum information.
 	**/
-	public function compileEnumImpl(enumType: EnumType, options: EnumOptions): Null<String> {
+	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<String> {
 		return enumComp.compile(enumType, options);
 	}
 
