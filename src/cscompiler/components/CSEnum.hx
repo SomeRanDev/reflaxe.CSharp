@@ -5,6 +5,8 @@ package cscompiler.components;
 import haxe.macro.Type;
 
 import reflaxe.BaseCompiler;
+import reflaxe.data.EnumOptionData;
+import reflaxe.helpers.OperatorHelper;
 
 /**
 	The component responsible for compiling Haxe
@@ -16,7 +18,7 @@ class CSEnum extends CSBase {
 
 		TODO.
 	**/
-	public function compile(enumType: EnumType, options: EnumOptions): Null<String> {
+	public function compile(enumType: EnumType, options: Array<EnumOptionData>): Null<String> {
 		return null;
 	}
 }

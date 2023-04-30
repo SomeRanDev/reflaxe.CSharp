@@ -6,6 +6,8 @@ import haxe.macro.Type;
 import haxe.display.Display.MetadataTarget;
 
 import reflaxe.BaseCompiler;
+import reflaxe.data.ClassVarData;
+import reflaxe.data.ClassFuncData;
 
 using reflaxe.helpers.SyntaxHelper;
 
@@ -17,7 +19,7 @@ class CSClass extends CSBase {
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
-	public function compile(classType: ClassType, varFields: ClassFieldVars, funcFields: ClassFieldFuncs): Null<String> {
+	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
 		// Stores all the variables and fields to put together later.
 		final variables = [];
 		final functions = [];
@@ -69,7 +71,6 @@ class CSClass extends CSBase {
 		// Functions
 		for(f in funcFields) {
 			final field = f.field;
-			final data = f.data;
 
 			// Compile name
 			final name = field.name == "new" ? csClassName : compiler.compileVarName(field.name);
@@ -89,16 +90,16 @@ class CSClass extends CSBase {
 				}
 			} else {
 				// Compile arguments
-				final arguments = data.args.map(a -> compiler.compileFunctionArgument(a.t, a.name, field.pos, a.opt, a.expr));
+				final arguments = f.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
 
 				// Compile return type
-				final ret = compiler.compileType(data.ret, field.pos);
+				final ret = compiler.compileType(f.ret, field.pos);
 
 				// Compile expression - Use `data.expr` instead of `field.expr()`
 				// since it gives us the contents of the function.
 				final csExpr = {
-					if(data.expr != null) {
-						final code = compiler.compileClassFuncExpr(data.expr);
+					if(f.expr != null) {
+						final code = compiler.compileClassFuncExpr(f.expr);
 						"{\n" + code.tab() + "\n}";
 					} else {
 						";";
