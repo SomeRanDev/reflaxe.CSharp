@@ -155,7 +155,9 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 			result += " = " + compileExpression(expr);
 		} else {
 			// TODO: ensure type is nullable
-			result += " = null";
+			if (optional) {
+				result += " = null";
+			}
 		}
 		return result;
 	}
