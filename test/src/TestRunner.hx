@@ -357,63 +357,78 @@ function compareFiles(fileA: String, fileB: String): Null<String> {
 
 function processCsCompile(t: String, systemName: String, originalCwd: String): Bool {
 	// Implement compile commands before allowing this func
-	Sys.println("Compiling not implemented");
-	return true;
+	// Sys.println("Compiling not implemented");
+	// return true;
 
 	var result = true;
 
 	Sys.println("-- " + t + " --");
 
-	final testDir = haxe.io.Path.join([TEST_DIR, t, BUILD_DIR]);
+	createCsProjBuildFiles(t);
 
-	if(!sys.FileSystem.exists(testDir)) {
-		sys.FileSystem.createDirectory(testDir);
+	final testOutDir = haxe.io.Path.join([TEST_DIR, t, OUT_DIR]);
+
+	if(!sys.FileSystem.exists(testOutDir)) {
+		sys.FileSystem.createDirectory(testOutDir);
 	}
 
-	Sys.setCwd(testDir);
+	Sys.setCwd(testOutDir);
 
-	final compileCommand = if(systemName == "Windows") {
-		// TODO: windows command
-		"";
-	} else if(systemName == "Linux") {
-		// TODO: linux command
-		"";
-	} else {
-		throw "Unsupported system";
-	}
-	final compileProcess = new sys.io.Process(compileCommand);
-	final stdoutContent = compileProcess.stdout.readAll().toString();
-	final stderrContent = compileProcess.stderr.readAll().toString();
-	final ec = compileProcess.exitCode();
+	// final compileCommand = if(systemName == "Windows") {
+	// 	// TODO: windows command
+	// 	"";
+	// } else if(systemName == "Linux") {
+	// 	// TODO: linux command
+	// 	"";
+	// } else if(systemName == "Mac") {
+	// 	// TODO: mac command
+	// 	"";
+	// } else {
+	// 	throw "Unsupported system";
+	// }
+
+	// Using Sys.command() for now because sys.io.Process() was stuck forever
+	final ec = Sys.command("dotnet", ["build", "--nologo"]);
+
+	// final compileProcess = new sys.io.Process(compileCommand);
+	// final stdoutContent = compileProcess.stdout.readAll().toString();
+	// final stderrContent = compileProcess.stderr.readAll().toString();
+	// final ec = compileProcess.exitCode();
 
 	if(ec != 0) {
 		Sys.println("C# compilation failed...");
-		Sys.println(stdoutContent);
-		Sys.println(stderrContent);
+		// Sys.println(stdoutContent);
+		// Sys.println(stderrContent);
 		result = false;
 	} else {
 		Sys.println("C# compilation success! 🤑");
-		if(ShowAllOutput) {
-			Sys.println(stdoutContent);
-			Sys.println(stderrContent);
-		}
+		// if(ShowAllOutput) {
+		// 	Sys.println(stdoutContent);
+		// 	Sys.println(stderrContent);
+		// }
 	}
 
-	// Run output
-	final executeProcess = new sys.io.Process("\"./test_out\"");
-	final exeOut = executeProcess.stdout.readAll().toString();
-	final exeErr = executeProcess.stderr.readAll().toString();
-	final exeEc = executeProcess.exitCode();
-	if(exeEc != 0) {
-		Sys.println("C# executable returned exit code: " + exeEc);
-		Sys.println(exeOut);
-		Sys.println(exeErr);
-		result = false;
-	} else {
-		Sys.println("C# executable ran successfully! 🦶");
-		if(ShowAllOutput) {
-			Sys.println(exeOut);
-			Sys.println(exeErr);
+	if (result) {
+		Sys.println("--");
+		final exeEc = Sys.command("dotnet", ["run", "--nologo"]);
+		Sys.println("--");
+
+		// // Run output
+		// final executeProcess = new sys.io.Process("\"./test_out\"");
+		// final exeOut = executeProcess.stdout.readAll().toString();
+		// final exeErr = executeProcess.stderr.readAll().toString();
+		// final exeEc = executeProcess.exitCode();
+		if(exeEc != 0) {
+			Sys.println("C# executable returned exit code: " + exeEc);
+			// Sys.println(exeOut);
+			// Sys.println(exeErr);
+			result = false;
+		} else {
+			Sys.println("C# executable ran successfully! 🦶");
+			// if(ShowAllOutput) {
+			// 	Sys.println(exeOut);
+			// 	Sys.println(exeErr);
+			// }
 		}
 	}
 
@@ -421,5 +436,54 @@ function processCsCompile(t: String, systemName: String, originalCwd: String): B
 	Sys.setCwd(originalCwd);
 
 	return result;
+}
+
+function createCsProjBuildFiles(t: String) {
+
+	// Could probably be improved, but that's a start!
+
+	final testDir = haxe.io.Path.join([TEST_DIR, t]);
+	final testOutDir = haxe.io.Path.join([TEST_DIR, t, OUT_DIR]);
+	final hxmlFile = haxe.io.Path.join([testDir, "Test.hxml"]);
+
+	final mainType = findMainTypeFromHxml(hxmlFile);
+
+	final csProjFile = haxe.io.Path.join([testOutDir, "build.csproj"]);
+	sys.io.File.saveContent(csProjFile, '
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+  <OutputType>Exe</OutputType>
+  <TargetFramework>net6.0</TargetFramework>
+  <ImplicitUsings>enable</ImplicitUsings>
+  <Nullable>enable</Nullable>
+  <StartupObject>Haxe.HaxeBoot</StartupObject>
+</PropertyGroup>
+
+</Project>
+');
+
+	final bootFile = haxe.io.Path.join([testOutDir, "HaxeBoot.cs"]);
+	sys.io.File.saveContent(bootFile, '
+namespace Haxe {
+	class HaxeBoot {
+		static void Main(string[] args) {
+			${mainType.indexOf(".") != -1 ? mainType : 'haxe.root.' + mainType}.main();
+		}
+	}
+}
+	');
+
+}
+
+function findMainTypeFromHxml(hxmlFile: String):String {
+	final hxmlData = sys.io.File.getContent(hxmlFile);
+	for (line in hxmlData.split("\n")) {
+		line = StringTools.trim(line);
+		if (StringTools.startsWith(line, "-main ")) {
+			return StringTools.trim(line.substr(6));
+		}
+	}
+	return null;
 }
 

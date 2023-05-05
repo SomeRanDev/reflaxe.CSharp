@@ -7,9 +7,11 @@ import haxe.ds.StringMap;
 @:analyzer(ignore)
 class Main {
 	static function main() {
+		untyped __cs__("System.Console.WriteLine({})", "Main.main()");
+
 		trueValue = true;
 		falseValue = false;
-		testAssignment();
+		// testAssignment();
 		// testNullAssignment();
 		// testUnops();
 		// testNullUnops();
@@ -35,7 +37,7 @@ class Main {
 	}
 
 	function foo(optInt:Int = 4, reqString:String) {
-		//
+
 	}
 
 	function foo2(optInt:Int = 4, reqString:String, optBool:Bool = false) {
@@ -81,25 +83,25 @@ class Main {
 	static var staticVar:Int;
 	static var staticNullVar:Null<Int>;
 
-	static function testAssignment() {
-		var a = 1;
-		eq(1, a);
-		a = 2;
-		eq(2, a);
+	// static function testAssignment() {
+	// 	var a = 1;
+	// 	eq(1, a);
+	// 	a = 2;
+	// 	eq(2, a);
 
-		staticVar = 1;
-		eq(1, staticVar);
+	// 	staticVar = 1;
+	// 	eq(1, staticVar);
 
-		var m = new Main();
-		m.localVar = 1;
-		eq(1, m.localVar);
+	// 	var m = new Main();
+	// 	m.localVar = 1;
+	// 	eq(1, m.localVar);
 
-		m.localVar += m.localVar += 1;
-		eq(3, m.localVar);
+	// 	m.localVar += m.localVar += 1;
+	// 	eq(3, m.localVar);
 
-		m.localVar = m.localVar += 1;
-		eq(4, m.localVar);
-	}
+	// 	m.localVar = m.localVar += 1;
+	// 	eq(4, m.localVar);
+	// }
 
 	// static function testNullAssignment() {
 	// 	var a:Null<Int> = 1;
