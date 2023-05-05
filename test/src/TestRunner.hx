@@ -2,6 +2,7 @@ package;
 
 final TEST_DIR = "test/tests";
 final OUT_DIR = "out";
+final OUT_DIR_LEGACY_CS = "out-legacy-cs";
 final INTENDED_DIR = "intended";
 final BUILD_DIR = "build";
 
@@ -11,6 +12,7 @@ var ShowAllOutput = false;
 var UpdateIntended = false;
 var NoDetails = false;
 var PrintCommand = false;
+var LegacyCS = false;
 
 function printlnErr(msg: String) {
 	Sys.stderr().writeString(msg + "\n", haxe.io.Encoding.UTF8);
@@ -50,6 +52,9 @@ Enables `always-compile`, `show-all-output`, and `no-details`.
 * print-command
 Prints the Haxe commands instead of running them.
 
+* legacy-cs
+Also export code from legacy/original C# target
+
 * test=TestName
 Makes it so only this test is ran. This option can be added multiple times to perform multiple tests.");
 
@@ -63,6 +68,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	UpdateIntended = args.contains("update-intended");
 	NoDetails = args.contains("no-details");
 	PrintCommand = args.contains("print-command");
+	LegacyCS = args.contains("legacy-cs");
 
 	var alwaysCompile = args.contains("always-compile");
 
@@ -221,6 +227,9 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 				Sys.println(stdoutContent);
 			}
 		}
+
+		if (LegacyCS)
+			executeLegacyCSExport(testDir, hxml);
 	}
 	return if(compareOutputFolders(testDir)) {
 		Sys.println("Success! Output matches! ❤️");
@@ -228,6 +237,26 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 	} else {
 		false;
 	}
+}
+
+function executeLegacyCSExport(testDir: String, hxml: String) {
+
+	// It can be useful to see what the original C# target is exporting, to compare
+
+	final absPath = haxe.io.Path.join([testDir, hxml]);
+	final systemNameDefine = Sys.systemName().toLowerCase();
+	final args = [
+		"--no-opt",
+		"-cp", testDir,
+		"--cs", haxe.io.Path.join([testDir, OUT_DIR_LEGACY_CS]),
+		"-D", "real-position",
+		"-D", "no-compilation",
+		"-D", systemNameDefine,
+		absPath
+	];
+
+	Sys.command(HaxeCommand, args);
+
 }
 
 function getOutputDirectory(testDir: String): String {
