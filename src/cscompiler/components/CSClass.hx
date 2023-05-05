@@ -162,7 +162,12 @@ class CSClass extends CSBase {
 			}
 		} else {
 			// Compile arguments
-			final arguments = f.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
+			final arguments = f.args.map(a -> {
+				if (a.isFrontOptional())
+					compiler.compileFunctionArgument(a.type, a.name, field.pos, false, null);
+				else
+					compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr);
+			});
 
 			// Compile return type
 			final ret = compiler.compileType(f.ret, field.pos);
@@ -182,6 +187,44 @@ class CSClass extends CSBase {
 			final props = compileFunctionProperties(f, classType).join(" ");
 			final func = meta + props + " " + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
 			functions.push(func);
+
+			// Resolve variations
+			final variations = f.findAllArgumentVariations(true, true);
+			if(variations != null && variations.length > 1) {
+				for(v in variations) {
+					if (v.args.length < f.args.length) {
+						// Compile arguments
+						final vArguments = v.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
+
+						// Compile internal call arguments
+						final vCallArgs = f.args.map(a -> {
+							var def = true;
+							for(arg in v.args) {
+								if(arg.name == a.name) {
+									def = false;
+									break;
+								}
+							}
+							def ? compiler.compileExpression(a.expr) : a.name;
+						});
+
+						// Compile expression
+						final csExpr = {
+							if(f.expr != null) {
+								final code = (ret != "void" ? "return " : "") + name + "(" + vCallArgs.join(", ") + ");";
+								"{\n" + code.tab() + "\n}";
+							} else {
+								";";
+							}
+						}
+
+						// Put it all together to make the C# function
+						final props = compileFunctionProperties(f, classType).join(" ");
+						final func = meta + props + " " + ret + " " + name + "(" + vArguments.join(", ") + ") " + csExpr;
+						functions.push(func);
+					}
+				}
+			}
 		}
 	}
 
