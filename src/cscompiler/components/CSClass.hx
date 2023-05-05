@@ -207,7 +207,7 @@ class CSClass extends CSBase {
 									break;
 								}
 							}
-							def ? compiler.compileExpression(a.expr) : a.name;
+							def && a.expr != null ? compiler.compileExpression(a.expr) : a.name;
 						});
 
 						// Compile expression
