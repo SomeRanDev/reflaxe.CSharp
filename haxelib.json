@@ -21,5 +21,10 @@
   },
   "classPath": "src/",
   "releasenote": "Initial release.",
-  "contributors": ["RobertBorghese", "jeremyfa"]
+  "contributors": ["RobertBorghese", "jeremyfa"],
+  "reflaxe": {
+    "name": "C#",
+    "abbv": "cs",
+    "stdPaths": ["std", "std/rcs/_std"]
+  }
 }
