@@ -44,7 +44,8 @@ class CSType extends CSBase {
 			}
 			case TAnonymous(anonRef): {
 				// TODO
-				null;
+				// For now, we simply use `object` type. Might change later
+				"object";
 			}
 			case TDynamic(maybeType): {
 				// TODO
