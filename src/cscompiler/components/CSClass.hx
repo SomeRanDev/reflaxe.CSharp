@@ -8,7 +8,9 @@ import haxe.display.Display.MetadataTarget;
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
+import reflaxe.input.ClassHierarchyTracker;
 
+using reflaxe.helpers.NameMetaHelper;
 using reflaxe.helpers.SyntaxHelper;
 
 /**
@@ -106,8 +108,20 @@ class CSClass extends CSBase {
 					}
 				}
 
+				// Function properties
+				final props = [ "public" ]; // Always public
+
+				if(f.isStatic) {
+					props.push("static");
+				} else {
+					// Add virtual if @:virtual meta OR has child override
+					if(field.hasMeta(":virtual") || ClassHierarchyTracker.funcHasChildOverride(classType, field, false)) {
+						props.push("virtual");
+					}
+				}
+
 				// Put it all together to make the C# function
-				final func = meta + "public " + (f.isStatic ? "static " : "virtual ") + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
+				final func = meta + props.join(" ") + " " + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
 				functions.push(func);
 			}
 		}
