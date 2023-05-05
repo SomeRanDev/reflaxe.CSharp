@@ -38,6 +38,14 @@ class Main {
 		//
 	}
 
+	function foo2(optInt:Int = 4, reqString:String, optBool:Bool = false) {
+		return false;
+	}
+
+	function foo3(?someNullableInt:Int) {
+
+	}
+
 	// @:generic static function neq<T>(expected:T, actual:T, ?p:PosInfos) {
 	// 	numTests++;
 	// 	if (expected == actual) {
