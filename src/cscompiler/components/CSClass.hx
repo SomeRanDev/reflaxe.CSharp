@@ -144,8 +144,10 @@ class CSClass extends CSBase {
 	function compileFunction(f: ClassFuncData, classType: ClassType) {
 		final field = f.field;
 
+		final isConstructor = (field.name == "new");
+
 		// Compile name
-		final name = field.name == "new" ? csClassName : compiler.compileVarName(field.name);
+		final name = isConstructor ? csClassName : compiler.compileVarName(field.name);
 
 		// Compile metadata
 		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
@@ -170,7 +172,7 @@ class CSClass extends CSBase {
 			});
 
 			// Compile return type
-			final ret = compiler.compileType(f.ret, field.pos);
+			final ret = isConstructor ? null : compiler.compileType(f.ret, field.pos);
 
 			// Compile expression - Use `data.expr` instead of `field.expr()`
 			// since it provides the contents of the function.
@@ -185,7 +187,7 @@ class CSClass extends CSBase {
 
 			// Put it all together to make the C# function
 			final props = compileFunctionProperties(f, classType).join(" ");
-			final func = meta + props + " " + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
+			final func = meta + props + " " + (!isConstructor ? ret + " " : "") + name + "(" + arguments.join(", ") + ") " + csExpr;
 			functions.push(func);
 
 			// Resolve variations
