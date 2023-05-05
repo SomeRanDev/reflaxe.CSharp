@@ -107,7 +107,7 @@ class CSClass extends CSBase {
 				}
 
 				// Put it all together to make the C# function
-				final func = meta + "public " + (f.isStatic ? "static " : "") + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
+				final func = meta + "public " + (f.isStatic ? "static " : "virtual ") + ret + " " + name + "(" + arguments.join(", ") + ") " + csExpr;
 				functions.push(func);
 			}
 		}
