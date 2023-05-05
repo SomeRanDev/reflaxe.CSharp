@@ -42,7 +42,19 @@ class Main {
 		return false;
 	}
 
-	function foo3(?someNullableInt:Int) {
+	function foo3(nullableInt:Null<Int>) {
+
+	}
+
+	function foo4(?optInt:Int) {
+
+	}
+
+	function foo5(nullableIntWithDef:Null<Int> = 4) {
+
+	}
+
+	function foo6(?optIntWithDef:Int = 4) {
 
 	}
 
