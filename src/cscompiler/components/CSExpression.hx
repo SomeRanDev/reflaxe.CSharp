@@ -317,7 +317,7 @@ class CSExpression extends CSBase {
 				case _:
 			}
 
-			return csExpr + "." + name;
+			csExpr + "." + name;
 		}
 	}
 
