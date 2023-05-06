@@ -244,6 +244,8 @@ class CSClass extends CSBase {
 			// Add virtual if @:virtual meta OR has child override
 			if(field.hasMeta(":virtual") || ClassHierarchyTracker.funcHasChildOverride(classType, field, false)) {
 				props.push("virtual");
+			} else if(field.hasMeta(":override") || ClassHierarchyTracker.getParentOverrideChain(f).length > 0) {
+				props.push("override");
 			}
 		}
 
