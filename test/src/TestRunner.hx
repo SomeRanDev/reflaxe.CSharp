@@ -477,6 +477,8 @@ function createCsProjBuildFiles(t: String) {
 
 	final mainType = findMainTypeFromHxml(hxmlFile);
 
+	// Add feature to automatically generate .csproj from the CSCompiler as well?
+
 	final csProjFile = haxe.io.Path.join([testOutDir, "build.csproj"]);
 	sys.io.File.saveContent(csProjFile, '
 <Project Sdk="Microsoft.NET.Sdk">
@@ -486,22 +488,24 @@ function createCsProjBuildFiles(t: String) {
   <TargetFramework>net6.0</TargetFramework>
   <ImplicitUsings>enable</ImplicitUsings>
   <Nullable>enable</Nullable>
-  <StartupObject>Haxe.HaxeBoot</StartupObject>
+  <StartupObject>haxe.root.HaxeBoot</StartupObject>
 </PropertyGroup>
 
 </Project>
 ');
 
-	final bootFile = haxe.io.Path.join([testOutDir, "HaxeBoot.cs"]);
-	sys.io.File.saveContent(bootFile, '
-namespace Haxe {
-	class HaxeBoot {
-		static void Main(string[] args) {
-			${mainType.indexOf(".") != -1 ? mainType : 'haxe.root.' + mainType}.main();
-		}
-	}
-}
-	');
+	// This is now done automatically
+
+// 	final bootFile = haxe.io.Path.join([testOutDir, "HaxeBoot.cs"]);
+// 	sys.io.File.saveContent(bootFile, '
+// namespace Haxe {
+// 	class HaxeBoot {
+// 		static void Main(string[] args) {
+// 			${mainType.indexOf(".") != -1 ? mainType : 'haxe.root.' + mainType}.main();
+// 		}
+// 	}
+// }
+// 	');
 
 }
 

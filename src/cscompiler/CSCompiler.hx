@@ -77,9 +77,43 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	// ---
 
 	/**
+		The file name used for main function code.
+
+		TODO: Was this the name used in the original Haxe/C# target?
+	**/
+	static final BootFilename = "HaxeBoot.cs";
+
+	/**
 		Called at the start of compilation.
 	**/
 	public override function onCompileStart() {
+		setupMainFunction();
+	}
+
+	/**
+		If -main exists, generate a Main function in C#.
+	**/
+	function setupMainFunction() {
+		final mainExpr = getMainExpr();
+		if(mainExpr != null) {
+			final csCode = compileExpressionOrError(mainExpr);
+			appendToExtraFile(BootFilename, haxeBootContent(csCode));
+		}
+	}
+
+	/**
+		Returns the content generated for the `HaxeBoot.cs`.
+	**/
+	function haxeBootContent(csCode: String) {
+		return StringTools.trim('
+namespace haxe.root {
+	class HaxeBoot {
+		static void Main(string[] args) {
+			${csCode};
+		}
+	}
+}
+		');
 	}
 
 	/**
