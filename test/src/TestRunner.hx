@@ -488,7 +488,7 @@ function createCsProjBuildFiles(t: String) {
   <TargetFramework>net6.0</TargetFramework>
   <ImplicitUsings>enable</ImplicitUsings>
   <Nullable>enable</Nullable>
-  <StartupObject>haxe.root.HaxeBoot</StartupObject>
+  <StartupObject>Haxe.HaxeBoot</StartupObject>
 </PropertyGroup>
 
 </Project>

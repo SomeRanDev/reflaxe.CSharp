@@ -1,7 +1,7 @@
-namespace haxe.root {
+namespace Haxe {
 	class HaxeBoot {
 		static void Main(string[] args) {
-			Main.main();
+			haxe.root.Main.main();
 		}
 	}
 }
