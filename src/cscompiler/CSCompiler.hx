@@ -12,7 +12,7 @@ import reflaxe.PluginCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.EnumOptionData;
-import reflaxe.helpers.OperatorHelper;
+import reflaxe.helpers.Context;
 
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.ModuleTypeHelper;
@@ -88,6 +88,7 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	**/
 	public override function onCompileStart() {
 		setupMainFunction();
+		setupCsProj();
 	}
 
 	/**
@@ -120,6 +121,34 @@ namespace Haxe {
 		}
 	}
 }
+		');
+	}
+
+	/**
+		Generates the .csproj file.
+	**/
+	function setupCsProj() {
+		if(!Context.defined("no-csproj")) {
+			appendToExtraFile("build.csproj", csProjContent());
+		}
+	}
+
+	/**
+		Returns the content of the .csproj file.
+	**/
+	function csProjContent() {
+		return StringTools.trim('
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+	<OutputType>Exe</OutputType>
+	<TargetFramework>net6.0</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<StartupObject>Haxe.HaxeBoot</StartupObject>
+</PropertyGroup>
+
+</Project>
 		');
 	}
 
