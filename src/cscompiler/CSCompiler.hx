@@ -103,13 +103,20 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 
 	/**
 		Returns the content generated for the `HaxeBoot.cs`.
+
+		NOTE:
+			Just appending "haxe.root." to the compiled C# code is very hacky.
+			Can't think of a scenario where this wouldn't work though.
+		
+		TODO:
+			Store `args` to use with `Sys.args()` later.
 	**/
 	function haxeBootContent(csCode: String) {
 		return StringTools.trim('
-namespace haxe.root {
+namespace Haxe {
 	class HaxeBoot {
 		static void Main(string[] args) {
-			${csCode};
+			haxe.root.${csCode};
 		}
 	}
 }
