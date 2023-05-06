@@ -7,7 +7,7 @@ import haxe.ds.StringMap;
 @:analyzer(ignore)
 class Main {
 	static function main() {
-		untyped __cs__("System.Console.WriteLine({})", "Main.main()");
+		untyped __cs__("System.Console.WriteLine({0})", "Main.main()");
 
 		trueValue = true;
 		falseValue = false;

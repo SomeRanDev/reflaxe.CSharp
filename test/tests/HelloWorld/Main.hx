@@ -13,5 +13,5 @@ class Child extends Base {
 
 function main() {
 	var num = 123;
-	untyped __cs__("System.Console.WriteLine({})", "Hello world! (" + num + ")");
+	untyped __cs__("System.Console.WriteLine({0})", "Hello world! (" + num + ")");
 }
