@@ -56,6 +56,9 @@ class CSClass extends CSBase {
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
 	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
+		// TODO: Set the output folder for the file this will be generated for
+		// compiler.setOutputFileDir("src");
+
 		// Stores all the variables and fields to put together later.
 		init(classType);
 
