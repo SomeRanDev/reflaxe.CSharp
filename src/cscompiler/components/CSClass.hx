@@ -68,7 +68,7 @@ class CSClass extends CSBase {
 		// Basic declaration
 		declaration += "class " + csClassName;
 		if(classType.superClass != null) {
-			declaration += " extends " + compiler.compileClassName(classType.superClass.t.get());
+			declaration += ": " + compiler.compileClassName(classType.superClass.t.get());
 		}
 
 		// Variables
