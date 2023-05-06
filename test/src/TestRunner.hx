@@ -393,7 +393,8 @@ function processCsCompile(t: String, systemName: String, originalCwd: String): B
 
 	Sys.println("-- " + t + " --");
 
-	createCsProjBuildFiles(t);
+	// This is now done automatically within compiler
+	// createCsProjBuildFiles(t);
 
 	final testOutDir = haxe.io.Path.join([TEST_DIR, t, OUT_DIR]);
 
@@ -465,48 +466,6 @@ function processCsCompile(t: String, systemName: String, originalCwd: String): B
 	Sys.setCwd(originalCwd);
 
 	return result;
-}
-
-function createCsProjBuildFiles(t: String) {
-
-	// Could probably be improved, but that's a start!
-
-	final testDir = haxe.io.Path.join([TEST_DIR, t]);
-	final testOutDir = haxe.io.Path.join([TEST_DIR, t, OUT_DIR]);
-	final hxmlFile = haxe.io.Path.join([testDir, "Test.hxml"]);
-
-	final mainType = findMainTypeFromHxml(hxmlFile);
-
-	// Add feature to automatically generate .csproj from the CSCompiler as well?
-
-	final csProjFile = haxe.io.Path.join([testOutDir, "build.csproj"]);
-	sys.io.File.saveContent(csProjFile, '
-<Project Sdk="Microsoft.NET.Sdk">
-
-<PropertyGroup>
-  <OutputType>Exe</OutputType>
-  <TargetFramework>net6.0</TargetFramework>
-  <ImplicitUsings>enable</ImplicitUsings>
-  <Nullable>enable</Nullable>
-  <StartupObject>Haxe.HaxeBoot</StartupObject>
-</PropertyGroup>
-
-</Project>
-');
-
-	// This is now done automatically
-
-// 	final bootFile = haxe.io.Path.join([testOutDir, "HaxeBoot.cs"]);
-// 	sys.io.File.saveContent(bootFile, '
-// namespace Haxe {
-// 	class HaxeBoot {
-// 		static void Main(string[] args) {
-// 			${mainType.indexOf(".") != -1 ? mainType : 'haxe.root.' + mainType}.main();
-// 		}
-// 	}
-// }
-// 	');
-
 }
 
 function findMainTypeFromHxml(hxmlFile: String):String {
