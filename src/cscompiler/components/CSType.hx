@@ -131,19 +131,25 @@ class CSType extends CSBase {
 		(i.e. for cast or static access).
 	**/
 	public function compileModuleExpression(moduleType: ModuleType): String {
-		switch(moduleType) {
-			case TClassDecl(clsRef): compileClassName(clsRef.get());
+		return switch(moduleType) {
+			case TClassDecl(clsRef):
+				compileClassName(clsRef.get(), true);
 			case _:
+				moduleType.getNameOrNative();
 		}
-		return moduleType.getNameOrNative();
 	}
 
 	/**
 		Get the name of the `ClassType` as it should appear in
 		the C# output.
 	**/
-	public function compileClassName(classType: ClassType): String {
-		return classType.getNameOrNative();
+	public function compileClassName(classType: ClassType, withPack: Bool = false): String {
+		if(withPack) {
+			return (classType.pack != null && classType.pack.length > 0 ? classType.pack.join(".") : "haxe.root") + "." + classType.getNameOrNative();
+		}
+		else {
+			return classType.getNameOrNative();
+		}
 	}
 }
 #end
