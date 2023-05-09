@@ -1,2 +1,5 @@
 build
 out
+out-legacy-cs
+intended/bin
+intended/obj
