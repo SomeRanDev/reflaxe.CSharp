@@ -323,7 +323,15 @@ function compareOutputFolders(testDir: String): Bool {
 		if(err != null) {
 			// If updating the intended folder, copy changes to the out/ as well.
 			if(UpdateIntended) {
-				sys.io.File.saveContent(outPath, sys.io.File.getContent(intendedPath));
+				if(!sys.FileSystem.exists(intendedPath)) {
+					sys.FileSystem.deleteFile(outPath);
+				} else {
+					final dir = haxe.io.Path.directory(outPath);
+					if(!sys.FileSystem.exists(dir)) {
+						sys.FileSystem.createDirectory(dir);
+					}
+					sys.io.File.saveContent(outPath, sys.io.File.getContent(intendedPath));
+				}
 			} else {
 				errors.push(err);
 			}
