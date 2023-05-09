@@ -6,6 +6,8 @@ final OUT_DIR_LEGACY_CS = "out-legacy-cs";
 final INTENDED_DIR = "intended";
 final BUILD_DIR = "build";
 
+final COMPARISON_IGNORE_FOLDERS = ["bin", "obj"];
+
 var HaxeCommand = "haxe";
 
 var ShowAllOutput = false;
@@ -306,7 +308,13 @@ function compareOutputFolders(testDir: String): Bool {
 		return false;
 	}
 
-	final files = getAllFiles(intendedFolder);
+	// Ignore certain paths when comparing `intended/` & `out/`.
+	final ignorePaths = [
+		for(p in COMPARISON_IGNORE_FOLDERS)
+			haxe.io.Path.join([intendedFolder, p])
+	];
+
+	final files = getAllFiles(intendedFolder, ignorePaths);
 	final errors = [];
 	for(f in files) {
 		final intendedPath = haxe.io.Path.join([intendedFolder, f]);
@@ -332,12 +340,14 @@ function compareOutputFolders(testDir: String): Bool {
 	}
 }
 
-function getAllFiles(dir: String): Array<String> {
+function getAllFiles(dir: String, ignore: Array<String>): Array<String> {
+	if(ignore.contains(dir)) return [];
+
 	final result = [];
 	for(file in sys.FileSystem.readDirectory(dir)) {
 		final fullPath = haxe.io.Path.join([dir, file]);
 		if(sys.FileSystem.isDirectory(fullPath)) {
-			for(f in getAllFiles(fullPath)) {
+			for(f in getAllFiles(fullPath, ignore)) {
 				result.push(haxe.io.Path.join([file, f]));
 			}
 		} else {
@@ -355,7 +365,10 @@ function compareFiles(fileA: String, fileB: String): Null<String> {
 		return "`" + fileB + "` does not exist.";
 	}
 
-	function normalize(s: String) return StringTools.trim(StringTools.replace(s, "\r\n", "\n"));
+	function normalize(s: Null<String>) {
+		if(s == null) return "";
+		return StringTools.trim(StringTools.replace(s, "\r\n", "\n"));
+	}
 
 	final contentA = normalize(sys.io.File.getContent(fileA));
 	final contentB = normalize(sys.io.File.getContent(fileB));
