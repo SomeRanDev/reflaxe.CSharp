@@ -54,8 +54,8 @@ namespace haxe.root {
 
 		public static void main() {
 			System.Console.WriteLine("Main.main()");
-			Main.trueValue = true;
-			Main.falseValue = false;
+			haxe.root.Main.trueValue = true;
+			haxe.root.Main.falseValue = false;
 		}
 	}
 }
