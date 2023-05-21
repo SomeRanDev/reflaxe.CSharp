@@ -34,22 +34,22 @@ class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	/**
 		Handles implementation of `compileClassImpl`.
 	**/
-	var classComp: CSClass;
+	public var classComp(default, null): CSClass;
 
 	/**
 		Handles implementation of `compileEnumImpl`.
 	**/
-	var enumComp: CSEnum;
+	public var enumComp(default, null): CSEnum;
 
 	/**
 		Handles implementation of `compileExprImpl`.
 	**/
-	var exprComp: CSExpression;
+	public var exprComp(default, null): CSExpression;
 
 	/**
 		Handles implementation of `compileType`, `compileModuleType`, and `compileClassName`.
 	**/
-	var typeComp: CSType;
+	public var typeComp(default, null): CSType;
 
 	/**
 		Constructor.
