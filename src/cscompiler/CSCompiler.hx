@@ -32,24 +32,29 @@ import cscompiler.components.*;
 **/
 class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
 	/**
+		The namespace used for top-level module types.
+	**/
+	public static final DEFAULT_ROOT_NAMESPACE = "haxe.root";
+
+	/**
 		Handles implementation of `compileClassImpl`.
 	**/
-	var classComp: CSClass;
+	public var classComp(default, null): CSClass;
 
 	/**
 		Handles implementation of `compileEnumImpl`.
 	**/
-	var enumComp: CSEnum;
+	public var enumComp(default, null): CSEnum;
 
 	/**
 		Handles implementation of `compileExprImpl`.
 	**/
-	var exprComp: CSExpression;
+	public var exprComp(default, null): CSExpression;
 
 	/**
 		Handles implementation of `compileType`, `compileModuleType`, and `compileClassName`.
 	**/
-	var typeComp: CSType;
+	public var typeComp(default, null): CSType;
 
 	/**
 		Constructor.
@@ -233,28 +238,6 @@ namespace Haxe {
 	**/
 	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<String> {
 		return exprComp.compile(expr, topLevel);
-	}
-
-	/**
-		Get a C# namespace for the given package
-	**/
-	public function packToNameSpace(pack: Array<String>):String {
-		if (pack != null) {
-			var csPack = [].concat(pack);
-
-			inline function shouldExcludeLastPackItem(item: String):Bool {
-				return item.toLowerCase() != item;
-			}
-
-			// while (csPack.length > 0 && shouldExcludeLastPackItem(csPack[csPack.length - 1])) {
-			// 	csPack.pop();
-			// }
-
-			if (csPack.length > 0) {
-				return csPack.join(".");
-			}
-		}
-		return "haxe.root";
 	}
 
 	/**

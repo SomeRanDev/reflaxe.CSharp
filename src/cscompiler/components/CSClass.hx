@@ -47,9 +47,7 @@ class CSClass extends CSBase {
 
 		final className = classType.name;
 		csClassName = compiler.compileClassName(classType);
-
-		final classPack = classType.pack;
-		csNameSpace = compiler.packToNameSpace(classPack);
+		csNameSpace = compiler.typeComp.getNameSpace(classType);
 	}
 
 	/**
