@@ -231,8 +231,8 @@ namespace Haxe {
 	/**
 		Generate the C# output given the Haxe typed expression (`TypedExpr`).
 	**/
-	public function compileExpressionImpl(expr: TypedExpr): Null<String> {
-		return exprComp.compile(expr);
+	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<String> {
+		return exprComp.compile(expr, topLevel);
 	}
 
 	/**

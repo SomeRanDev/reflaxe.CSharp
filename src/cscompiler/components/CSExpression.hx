@@ -27,7 +27,7 @@ class CSExpression extends CSBase {
 	/**
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
-	public function compile(expr: TypedExpr): Null<String> {
+	public function compile(expr: TypedExpr, topLevel: Bool): Null<String> {
 		var result = "";
 		switch(expr.expr) {
 			case TConst(constant): {
