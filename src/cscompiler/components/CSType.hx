@@ -30,7 +30,7 @@ class CSType extends CSBase {
 				}
 			}
 			case TEnum(enumRef, params): {
-				withTypeParams(enumRef.get().getNameOrNative(), params, pos);
+				withTypeParams(compileEnumName(enumRef.get()), params, pos);
 			}
 			case TInst(clsRef, params): {
 				withTypeParams(compileClassName(clsRef.get()), params, pos);
@@ -144,12 +144,51 @@ class CSType extends CSBase {
 		the C# output.
 	**/
 	public function compileClassName(classType: ClassType, withPack: Bool = false): String {
-		if(withPack) {
-			return (classType.pack != null && classType.pack.length > 0 ? classType.pack.join(".") : "haxe.root") + "." + classType.getNameOrNative();
+		return if(withPack) {
+			getNameSpace(classType) + "." + classType.getNameOrNative();
+		} else {
+			classType.getNameOrNative();
 		}
-		else {
-			return classType.getNameOrNative();
+	}
+
+	/**
+		Get the name of the `EnumType` as it should appear in
+		the C# output.
+	**/
+	public function compileEnumName(enumType: EnumType, withPack: Bool = false): String {
+		return if(withPack) {
+			getNameSpace(enumType) + "." + enumType.getNameOrNative();
+		} else {
+			enumType.getNameOrNative();
 		}
+	}
+
+	/**
+		Get a C# namespace for the given package
+	**/
+	public function getNameSpace(baseType: BaseType):String {
+		final pack = getPackWithoutModule(baseType);
+		return pack.length > 0 ? pack.join(".") : CSCompiler.DEFAULT_ROOT_NAMESPACE;
+	}
+
+	/**
+		Get copy of `pack` from a `BaseType` with the module name
+		removed.
+	**/
+	public function getPackWithoutModule(baseType: BaseType): Array<String> {
+		final pack = baseType.pack.copy();
+
+		if(pack.length > 0) {
+			inline function shouldExcludeLastPackItem(item: String):Bool {
+				return item.toLowerCase() != item;
+			}
+
+			while (pack.length > 0 && shouldExcludeLastPackItem(pack[pack.length - 1])) {
+				pack.pop();
+			}
+		}
+
+		return pack;
 	}
 }
 #end
