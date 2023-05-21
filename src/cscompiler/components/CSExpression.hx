@@ -217,18 +217,15 @@ class CSExpression extends CSBase {
 		Each line of the output is preemptively tabbed.
 	**/
 	function toIndentedScope(e: TypedExpr): String {
-		final comExpr = e -> {
-			final cs = compiler.compileExpression(e);
-			return cs == null ? null : (cs.tab() + ";");
-		};
+		var el = switch(e.expr) {
+			case TBlock(el): el;
+			case _: [e];
+		}
 
-		return switch(e.expr) {
-			case TBlock(expressionList): {
-				expressionList.map(comExpr).join("\n");
-			}
-			case _: {
-				comExpr(e) ?? "";
-			}
+		return if(el.length == 0) {
+			"";
+		} else {
+			compiler.compileExpressionsIntoLines(el).tab();
 		}
 	}
 
