@@ -246,9 +246,9 @@ namespace Haxe {
 				return item.toLowerCase() != item;
 			}
 
-			while (csPack.length > 0 && shouldExcludeLastPackItem(csPack[csPack.length - 1])) {
-				csPack.pop();
-			}
+			// while (csPack.length > 0 && shouldExcludeLastPackItem(csPack[csPack.length - 1])) {
+			// 	csPack.pop();
+			// }
 
 			if (csPack.length > 0) {
 				return csPack.join(".");
