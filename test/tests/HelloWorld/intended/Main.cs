@@ -1,4 +1,4 @@
-namespace _Main {
+namespace haxe.root {
 	class Main_Fields_ {
 		public static void main() {
 			int num = 123;
