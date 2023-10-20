@@ -8,7 +8,7 @@ import haxe.macro.Type;
 // ---
 
 import reflaxe.BaseCompiler;
-import reflaxe.PluginCompiler;
+import reflaxe.DirectToStringCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.EnumOptionData;
@@ -30,7 +30,7 @@ import cscompiler.components.*;
 
 	Its "impl" functions are called from Reflaxe.
 **/
-class CSCompiler extends reflaxe.PluginCompiler<CSCompiler> {
+class CSCompiler extends reflaxe.DirectToStringCompiler {
 	/**
 		The namespace used for top-level module types.
 	**/
