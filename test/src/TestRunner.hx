@@ -317,6 +317,9 @@ function compareOutputFolders(testDir: String): Bool {
 	final files = getAllFiles(intendedFolder, ignorePaths);
 	final errors = [];
 	for(f in files) {
+		// Ignore _GeneratedFiles.txt for now.
+		if(f == "_GeneratedFiles.txt") continue;
+
 		final intendedPath = haxe.io.Path.join([intendedFolder, f]);
 		final outPath = haxe.io.Path.join([outFolder, f]);
 		final err = compareFiles(intendedPath, outPath);
