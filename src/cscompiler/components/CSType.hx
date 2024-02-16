@@ -6,6 +6,12 @@ import reflaxe.helpers.Context; // same as haxe.macro.Context
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
+import cscompiler.config.Define;
+import cscompiler.config.NamespaceStyle;
+import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
+
+import cscompiler.helpers.StringTools;
+
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
 
@@ -171,24 +177,16 @@ class CSType extends CSBase {
 		if (pack.length == 0) {
 			return CSCompiler.DEFAULT_ROOT_NAMESPACE;
 		}
-		var returnValue = pack.join(".");
-		if (!Context.defined("ns-style")) {
-			return returnValue;
+
+		final result = pack.join(".");
+		return switch(NamespaceStyle_fromString(D_NamespaceStyle.getValueOrNull() ?? "")) {
+			case Pascal: {
+				StringTools.toPascalCase(result);
+			}
+			case Default: {
+				result;
+			}
 		}
-		switch (Context.definedValue("ns-style")) {
-			case "pascal":
-				returnValue = ~/[\._]\w/g.map(
-					returnValue,
-					(each) -> {
-						final part = each.matched(0);
-						final separator = part.charAt(0);
-						final character = part.charAt(1).toUpperCase();
-						return '${separator == "." ? separator : ""}${character}';
-					}
-				);
-				returnValue = '${returnValue.charAt(0).toUpperCase()}${returnValue.substr(1)}';
-		}
-		return returnValue;
 	}
 
 	/**
