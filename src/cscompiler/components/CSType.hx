@@ -168,7 +168,27 @@ class CSType extends CSBase {
 	**/
 	public function getNameSpace(baseType: BaseType):String {
 		final pack = getPackWithoutModule(baseType);
-		return pack.length > 0 ? pack.join(".") : CSCompiler.DEFAULT_ROOT_NAMESPACE;
+		if (pack.length == 0) {
+			return CSCompiler.DEFAULT_ROOT_NAMESPACE;
+		}
+		var returnValue = pack.join(".");
+		if (!Context.defined("ns-style")) {
+			return returnValue;
+		}
+		switch (Context.definedValue("ns-style")) {
+			case "pascal":
+				returnValue = ~/[\._]\w/g.map(
+					returnValue,
+					(each) -> {
+						final part = each.matched(0);
+						final separator = part.charAt(0);
+						final character = part.charAt(1).toUpperCase();
+						return '${separator == "." ? separator : ""}${character}';
+					}
+				);
+				returnValue = '${returnValue.charAt(0).toUpperCase()}${returnValue.substr(1)}';
+		}
+		return returnValue;
 	}
 
 	/**
