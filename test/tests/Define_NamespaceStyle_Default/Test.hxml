@@ -1,0 +1,6 @@
+# The following are added automatically:
+# -lib csharp
+# --custom-target rcs=out
+
+-main namespacestyle.default_.Main
+-D namespace_style=default
