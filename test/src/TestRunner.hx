@@ -186,7 +186,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 
 		// Compile C# output generated from each `.hxml` file.
 		for(maybeHxmlFile in testHxmlFiles) {
-			if(!processCsCompile(t, systemName, originalCwd, maybeHxmlFile)) {
+			if(!compileAndRunCs(t, systemName, originalCwd, maybeHxmlFile)) {
 				failures++;
 				break;
 			}
@@ -235,6 +235,9 @@ function printFailed(msg: Null<String> = null) {
 	}
 }
 
+/**
+	Runs the haxe compilation for all the tests' `.hxml` files.
+**/
 function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 	final hasMultipleHxmlFiles = hxmlFiles.length > 1;
 	for(hxml in hxmlFiles) {
@@ -288,10 +291,10 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 	}
 }
 
+/**
+	It can be useful to see what the original C# target is exporting, to compare
+**/
 function executeLegacyCSExport(testDir: String, hxml: String) {
-
-	// It can be useful to see what the original C# target is exporting, to compare
-
 	final absPath = Path.join([testDir, hxml]);
 	final systemNameDefine = Sys.systemName().toLowerCase();
 	final args = [
@@ -308,10 +311,13 @@ function executeLegacyCSExport(testDir: String, hxml: String) {
 
 }
 
+/**
+	Generates the full output directory.
+**/
 function getOutputDirectory(testDir: String, subDir: Null<String>) {
 	final parts = [
 		testDir,
-		getOutputDirectoryName(testDir)
+		getOutputDirectoryBase(testDir)
 	];
 
 	if(subDir != null) {
@@ -321,7 +327,14 @@ function getOutputDirectory(testDir: String, subDir: Null<String>) {
 	return Path.join(parts);
 }
 
-function getOutputDirectoryName(testDir: String): String {
+/**
+	Returns the base output directory:
+
+	`out` if normal test.
+	`intended` if updating intended output.
+	`intended-SYSTEM` if updating intended for system-specific test.
+**/
+function getOutputDirectoryBase(testDir: String): String {
 	final sysDir = INTENDED_DIR + "-" + Sys.systemName();
 	final sysDirExists = FileSystem.exists(Path.join([testDir, sysDir]));
 	return if(UpdateIntended) {
@@ -356,6 +369,9 @@ function onProcessFail(process: Process, hxml: String, ec: Int, stdoutContent: S
 	printFailed(result);
 }
 
+/**
+	Compares the contents of the `out` and `intended` folders.
+**/
 function compareOutputFolders(testDir: String): Bool {
 	final outFolder = Path.join([testDir, OUT_DIR]);
 	final intendedFolderSys = Path.join([testDir, INTENDED_DIR + "-" + Sys.systemName()]);
@@ -381,7 +397,7 @@ function compareOutputFolders(testDir: String): Bool {
 	for(f in files) {
 		final intendedPath = Path.join([intendedFolder, f]);
 		final outPath = Path.join([outFolder, f]);
-		final err = compareFiles(intendedPath, outPath);
+		final err = compareFile(intendedPath, outPath);
 		if(err != null) {
 			// If updating the intended folder, copy changes to the out/ as well.
 			if(UpdateIntended) {
@@ -445,7 +461,7 @@ function getAllFiles(dir: String, ignore: Array<String>): Array<String> {
 	return result;
 }
 
-function compareFiles(fileA: String, fileB: String): Null<String> {
+function compareFile(fileA: String, fileB: String): Null<String> {
 	if(!FileSystem.exists(fileA)) {
 		return "`" + fileA + "` does not exist.";
 	}
@@ -492,22 +508,14 @@ function compareFiles(fileA: String, fileB: String): Null<String> {
 	return null;
 }
 
-function processCsCompile(t: String, systemName: String, originalCwd: String, subDir: Null<String>): Bool {
-	// Implement compile commands before allowing this func
-	// Sys.println("Compiling not implemented");
-	// return true;
-
+function compileAndRunCs(t: String, systemName: String, originalCwd: String, subDir: Null<String>): Bool {
 	var result = true;
 
 	Sys.println("-- " + t + " --");
 
-	// This is now done automatically within compiler
-	// createCsProjBuildFiles(t);
-
 	final testOutDirParts = [TEST_DIR, t, OUT_DIR];
 	if(subDir != null) testOutDirParts.push(subDir);
 	final testOutDir = Path.join(testOutDirParts);
-	trace(testOutDir);
 
 	if(!FileSystem.exists(testOutDir)) {
 		FileSystem.createDirectory(testOutDir);
@@ -515,61 +523,29 @@ function processCsCompile(t: String, systemName: String, originalCwd: String, su
 
 	Sys.setCwd(testOutDir);
 
-	// final compileCommand = if(systemName == "Windows") {
-	// 	// TODO: windows command
-	// 	"";
-	// } else if(systemName == "Linux") {
-	// 	// TODO: linux command
-	// 	"";
-	// } else if(systemName == "Mac") {
-	// 	// TODO: mac command
-	// 	"";
-	// } else {
-	// 	throw "Unsupported system";
-	// }
-
+	// Compile C#
 	// Using Sys.command() for now because sys.io.Process() was stuck forever
 	final ec = Sys.command("dotnet", ["build", "--nologo"]);
 
-	// final compileProcess = new sys.io.Process(compileCommand);
-	// final stdoutContent = compileProcess.stdout.readAll().toString();
-	// final stderrContent = compileProcess.stderr.readAll().toString();
-	// final ec = compileProcess.exitCode();
-
 	if(ec != 0) {
 		Sys.println("C# compilation failed...");
-		// Sys.println(stdoutContent);
-		// Sys.println(stderrContent);
 		result = false;
 	} else {
 		Sys.println("C# compilation success! 🤑");
-		// if(ShowAllOutput) {
-		// 	Sys.println(stdoutContent);
-		// 	Sys.println(stderrContent);
-		// }
 	}
 
+	// Run executable if successfully compiled
 	if (result) {
 		Sys.println("--");
 		final exeEc = Sys.command("dotnet", ["run", "--nologo"]);
 		Sys.println("--");
 
-		// // Run output
-		// final executeProcess = new sys.io.Process("\"./test_out\"");
-		// final exeOut = executeProcess.stdout.readAll().toString();
-		// final exeErr = executeProcess.stderr.readAll().toString();
-		// final exeEc = executeProcess.exitCode();
+		// Run output
 		if(exeEc != 0) {
 			Sys.println("C# executable returned exit code: " + exeEc);
-			// Sys.println(exeOut);
-			// Sys.println(exeErr);
 			result = false;
 		} else {
 			Sys.println("C# executable ran successfully! 🦶");
-			// if(ShowAllOutput) {
-			// 	Sys.println(exeOut);
-			// 	Sys.println(exeErr);
-			// }
 		}
 	}
 
