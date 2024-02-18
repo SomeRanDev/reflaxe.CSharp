@@ -1,5 +1,3 @@
-version // 1
-0//0
 Main.cs
 build.csproj
 HaxeBoot.cs

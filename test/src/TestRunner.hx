@@ -6,7 +6,7 @@ final OUT_DIR_LEGACY_CS = "out-legacy-cs";
 final INTENDED_DIR = "intended";
 final BUILD_DIR = "build";
 
-final COMPARISON_IGNORE_FOLDERS = ["bin", "obj"];
+final COMPARISON_IGNORE_PATHS = ["bin", "obj"];
 
 var HaxeCommand = "haxe";
 
@@ -205,6 +205,7 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 			"-cp " + testDir,
 			"--custom-target csharp=" + haxe.io.Path.join([testDir, getOutputDirectory(testDir)]),
 			"-D " + systemNameDefine,
+			"-D reflaxe_no_generated_metadata", // Don't generate metadata in _GeneratedFiles.txt
 			"\"" + absPath + "\""
 		];
 
@@ -310,16 +311,13 @@ function compareOutputFolders(testDir: String): Bool {
 
 	// Ignore certain paths when comparing `intended/` & `out/`.
 	final ignorePaths = [
-		for(p in COMPARISON_IGNORE_FOLDERS)
+		for(p in COMPARISON_IGNORE_PATHS)
 			haxe.io.Path.join([intendedFolder, p])
 	];
 
 	final files = getAllFiles(intendedFolder, ignorePaths);
 	final errors = [];
 	for(f in files) {
-		// Ignore _GeneratedFiles.txt for now.
-		if(f == "_GeneratedFiles.txt") continue;
-
 		final intendedPath = haxe.io.Path.join([intendedFolder, f]);
 		final outPath = haxe.io.Path.join([outFolder, f]);
 		final err = compareFiles(intendedPath, outPath);
@@ -344,7 +342,7 @@ function compareOutputFolders(testDir: String): Bool {
 	// If updating the intended folder, delete any out/ files that don't match.
 	if(UpdateIntended) {
 		final outIgnorePaths = [
-			for(p in COMPARISON_IGNORE_FOLDERS)
+			for(p in COMPARISON_IGNORE_PATHS)
 				haxe.io.Path.join([outFolder, p])
 		];
 		final outputFiles = getAllFiles(outFolder, outIgnorePaths);

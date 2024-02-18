@@ -1,5 +1,3 @@
-version // 1
-0//1
 namespacestyle_Main.cs
 build.csproj
 HaxeBoot.cs
