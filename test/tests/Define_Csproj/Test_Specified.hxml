@@ -1,0 +1,6 @@
+# The following are added automatically:
+# -lib csharp
+# --custom-target rcs=out
+
+-main Main
+-D csproj=Test.csproj

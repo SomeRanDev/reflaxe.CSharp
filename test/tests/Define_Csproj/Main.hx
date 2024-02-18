@@ -1,0 +1,3 @@
+package;
+
+function main() { }
