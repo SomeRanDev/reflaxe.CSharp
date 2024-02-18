@@ -140,7 +140,7 @@ namespace Haxe {
 		Otherwise, a default .csproj is generated.
 	**/
 	function setupCsProj() {
-		if(D_NoCsproj.isDefined()) {
+		if (D_NoCsproj.isDefined()) {
 			return;
 		}
 		if (!D_Csproj.isDefined()) {
