@@ -1,5 +1,17 @@
 package;
 
+// ------------------------------------
+// Imports
+// ------------------------------------
+import haxe.io.Path;
+
+import sys.FileSystem;
+import sys.io.File;
+import sys.io.Process;
+
+// ------------------------------------
+// Constants
+// ------------------------------------
 final TEST_DIR = "test/tests";
 final OUT_DIR = "out";
 final OUT_DIR_LEGACY_CS = "out-legacy-cs";
@@ -8,6 +20,9 @@ final BUILD_DIR = "build";
 
 final COMPARISON_IGNORE_PATHS = ["bin", "obj"];
 
+// ------------------------------------
+// Argument Variables
+// ------------------------------------
 var HaxeCommand = "haxe";
 
 var ShowAllOutput = false;
@@ -16,11 +31,17 @@ var NoDetails = false;
 var PrintCommand = false;
 var LegacyCS = false;
 
+/**
+	Prints a `String` to stderr.
+**/
 function printlnErr(msg: String) {
 	Sys.stderr().writeString(msg + "\n", haxe.io.Encoding.UTF8);
 	Sys.stderr().flush();
 }
 
+/**
+	The main function.
+**/
 function main() {
 	// ------------------------------------
 	// Parse options
@@ -160,7 +181,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 			testHxmlFiles = [null];
 		} else {
 			// Remove `.hxml` extension for directory name.
-			testHxmlFiles = testHxmlFiles.map(haxe.io.Path.withoutExtension);
+			testHxmlFiles = testHxmlFiles.map(Path.withoutExtension);
 		}
 
 		// Compile C# output generated from each `.hxml` file.
@@ -182,10 +203,10 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 }
 
 function checkAndReadDir(path: String): Array<String> {
-	if(!sys.FileSystem.exists(path)) {
+	if(!FileSystem.exists(path)) {
 		throw "Path: `" + path + "` could not be found. Is the current working directory (cwd) the top folder of the repository??";
 	}
-	return sys.FileSystem.readDirectory(path);
+	return FileSystem.readDirectory(path);
 }
 
 /**
@@ -194,9 +215,9 @@ function checkAndReadDir(path: String): Array<String> {
 **/
 function processTest(t: String): Null<Array<String>> {
 	Sys.println("-- " + t + " --");
-	final testDir = haxe.io.Path.join([TEST_DIR, t]);
+	final testDir = Path.join([TEST_DIR, t]);
 	final hxmlFiles = checkAndReadDir(testDir).filter(function(file) {
-		final p = new haxe.io.Path(file);
+		final p = new Path(file);
 		return p.ext == "hxml";
 	});
 	return if(hxmlFiles.length == 0) {
@@ -217,8 +238,8 @@ function printFailed(msg: Null<String> = null) {
 function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 	final hasMultipleHxmlFiles = hxmlFiles.length > 1;
 	for(hxml in hxmlFiles) {
-		final absPath = haxe.io.Path.join([testDir, hxml]);
-		final outputSubDir = hasMultipleHxmlFiles ? haxe.io.Path.withoutExtension(hxml) : null;
+		final absPath = Path.join([testDir, hxml]);
+		final outputSubDir = hasMultipleHxmlFiles ? Path.withoutExtension(hxml) : null;
 		final systemNameDefine = Sys.systemName().toLowerCase();
 		final args = [
 			"--no-opt",
@@ -239,7 +260,7 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 			return true;
 		}
 
-		final process = new sys.io.Process("\"" + HaxeCommand + "\" " + args.join(" "));
+		final process = new Process("\"" + HaxeCommand + "\" " + args.join(" "));
 		final _out = process.stdout.readAll();
 		final _in = process.stderr.readAll();
 
@@ -271,12 +292,12 @@ function executeLegacyCSExport(testDir: String, hxml: String) {
 
 	// It can be useful to see what the original C# target is exporting, to compare
 
-	final absPath = haxe.io.Path.join([testDir, hxml]);
+	final absPath = Path.join([testDir, hxml]);
 	final systemNameDefine = Sys.systemName().toLowerCase();
 	final args = [
 		"--no-opt",
 		"-cp", testDir,
-		"--cs", haxe.io.Path.join([testDir, OUT_DIR_LEGACY_CS]),
+		"--cs", Path.join([testDir, OUT_DIR_LEGACY_CS]),
 		"-D", "real-position",
 		"-D", "no-compilation",
 		"-D", systemNameDefine,
@@ -297,12 +318,12 @@ function getOutputDirectory(testDir: String, subDir: Null<String>) {
 		parts.push(subDir);
 	}
 
-	return haxe.io.Path.join(parts);
+	return Path.join(parts);
 }
 
 function getOutputDirectoryName(testDir: String): String {
 	final sysDir = INTENDED_DIR + "-" + Sys.systemName();
-	final sysDirExists = sys.FileSystem.exists(haxe.io.Path.join([testDir, sysDir]));
+	final sysDirExists = FileSystem.exists(Path.join([testDir, sysDir]));
 	return if(UpdateIntended) {
 		// If the system exclusive directory exists, use it instead
 		if(sysDirExists) {
@@ -315,7 +336,7 @@ function getOutputDirectoryName(testDir: String): String {
 	}
 }
 
-function onProcessFail(process: sys.io.Process, hxml: String, ec: Int, stdoutContent: String, stderrContent: String) {
+function onProcessFail(process: Process, hxml: String, ec: Int, stdoutContent: String, stderrContent: String) {
 	final info = [];
 	info.push(".hxml File:\n" + hxml);
 	info.push("Exit Code:\n" + ec);
@@ -336,15 +357,15 @@ function onProcessFail(process: sys.io.Process, hxml: String, ec: Int, stdoutCon
 }
 
 function compareOutputFolders(testDir: String): Bool {
-	final outFolder = haxe.io.Path.join([testDir, OUT_DIR]);
-	final intendedFolderSys = haxe.io.Path.join([testDir, INTENDED_DIR + "-" + Sys.systemName()]);
-	final intendedFolder = if(sys.FileSystem.exists(intendedFolderSys)) {
+	final outFolder = Path.join([testDir, OUT_DIR]);
+	final intendedFolderSys = Path.join([testDir, INTENDED_DIR + "-" + Sys.systemName()]);
+	final intendedFolder = if(FileSystem.exists(intendedFolderSys)) {
 		intendedFolderSys;
 	} else {
-		haxe.io.Path.join([testDir, INTENDED_DIR]);
+		Path.join([testDir, INTENDED_DIR]);
 	}
 
-	if(!sys.FileSystem.exists(intendedFolder)) {
+	if(!FileSystem.exists(intendedFolder)) {
 		printFailed("Intended folder does not exist?");
 		return false;
 	}
@@ -352,26 +373,26 @@ function compareOutputFolders(testDir: String): Bool {
 	// Ignore certain paths when comparing `intended/` & `out/`.
 	final ignorePaths = [
 		for(p in COMPARISON_IGNORE_PATHS)
-			haxe.io.Path.join([intendedFolder, p])
+			Path.join([intendedFolder, p])
 	];
 
 	final files = getAllFiles(intendedFolder, ignorePaths);
 	final errors = [];
 	for(f in files) {
-		final intendedPath = haxe.io.Path.join([intendedFolder, f]);
-		final outPath = haxe.io.Path.join([outFolder, f]);
+		final intendedPath = Path.join([intendedFolder, f]);
+		final outPath = Path.join([outFolder, f]);
 		final err = compareFiles(intendedPath, outPath);
 		if(err != null) {
 			// If updating the intended folder, copy changes to the out/ as well.
 			if(UpdateIntended) {
-				if(!sys.FileSystem.exists(intendedPath)) {
-					sys.FileSystem.deleteFile(outPath);
+				if(!FileSystem.exists(intendedPath)) {
+					FileSystem.deleteFile(outPath);
 				} else {
-					final dir = haxe.io.Path.directory(outPath);
-					if(!sys.FileSystem.exists(dir)) {
-						sys.FileSystem.createDirectory(dir);
+					final dir = Path.directory(outPath);
+					if(!FileSystem.exists(dir)) {
+						FileSystem.createDirectory(dir);
 					}
-					sys.io.File.saveContent(outPath, sys.io.File.getContent(intendedPath));
+					File.saveContent(outPath, File.getContent(intendedPath));
 				}
 			} else {
 				errors.push(err);
@@ -383,14 +404,14 @@ function compareOutputFolders(testDir: String): Bool {
 	if(UpdateIntended) {
 		final outIgnorePaths = [
 			for(p in COMPARISON_IGNORE_PATHS)
-				haxe.io.Path.join([outFolder, p])
+				Path.join([outFolder, p])
 		];
 		final outputFiles = getAllFiles(outFolder, outIgnorePaths);
 		for(f in outputFiles) {
 			if(!files.contains(f)) {
-				final path = haxe.io.Path.join([outFolder, f]);
-				if(sys.FileSystem.exists(path)) {
-					sys.FileSystem.deleteFile(path);
+				final path = Path.join([outFolder, f]);
+				if(FileSystem.exists(path)) {
+					FileSystem.deleteFile(path);
 				}
 			}
 		}
@@ -411,11 +432,11 @@ function getAllFiles(dir: String, ignore: Array<String>): Array<String> {
 	if(ignore.contains(dir)) return [];
 
 	final result = [];
-	for(file in sys.FileSystem.readDirectory(dir)) {
-		final fullPath = haxe.io.Path.join([dir, file]);
-		if(sys.FileSystem.isDirectory(fullPath)) {
+	for(file in FileSystem.readDirectory(dir)) {
+		final fullPath = Path.join([dir, file]);
+		if(FileSystem.isDirectory(fullPath)) {
 			for(f in getAllFiles(fullPath, ignore)) {
-				result.push(haxe.io.Path.join([file, f]));
+				result.push(Path.join([file, f]));
 			}
 		} else {
 			result.push(file);
@@ -425,10 +446,10 @@ function getAllFiles(dir: String, ignore: Array<String>): Array<String> {
 }
 
 function compareFiles(fileA: String, fileB: String): Null<String> {
-	if(!sys.FileSystem.exists(fileA)) {
+	if(!FileSystem.exists(fileA)) {
 		return "`" + fileA + "` does not exist.";
 	}
-	if(!sys.FileSystem.exists(fileB)) {
+	if(!FileSystem.exists(fileB)) {
 		return "`" + fileB + "` does not exist.";
 	}
 
@@ -437,8 +458,8 @@ function compareFiles(fileA: String, fileB: String): Null<String> {
 		return StringTools.trim(StringTools.replace(s, "\r\n", "\n"));
 	}
 
-	final contentA = normalize(sys.io.File.getContent(fileA));
-	final contentB = normalize(sys.io.File.getContent(fileB));
+	final contentA = normalize(File.getContent(fileA));
+	final contentB = normalize(File.getContent(fileB));
 
 	if(contentA != contentB) {
 		final msg = fileB + "` does not match the intended output.";
@@ -485,11 +506,11 @@ function processCsCompile(t: String, systemName: String, originalCwd: String, su
 
 	final testOutDirParts = [TEST_DIR, t, OUT_DIR];
 	if(subDir != null) testOutDirParts.push(subDir);
-	final testOutDir = haxe.io.Path.join(testOutDirParts);
+	final testOutDir = Path.join(testOutDirParts);
 	trace(testOutDir);
 
-	if(!sys.FileSystem.exists(testOutDir)) {
-		sys.FileSystem.createDirectory(testOutDir);
+	if(!FileSystem.exists(testOutDir)) {
+		FileSystem.createDirectory(testOutDir);
 	}
 
 	Sys.setCwd(testOutDir);
@@ -559,7 +580,7 @@ function processCsCompile(t: String, systemName: String, originalCwd: String, su
 }
 
 function findMainTypeFromHxml(hxmlFile: String):String {
-	final hxmlData = sys.io.File.getContent(hxmlFile);
+	final hxmlData = File.getContent(hxmlFile);
 	for (line in hxmlData.split("\n")) {
 		line = StringTools.trim(line);
 		if (StringTools.startsWith(line, "-main ")) {
