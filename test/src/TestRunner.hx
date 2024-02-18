@@ -113,10 +113,15 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 		}
 	}
 
+	final hxmlFiles: Map<String, Array<String>> = [];
+
 	var failures = 0;
 	for(t in tests) {
-		if(!processTest(t)) {
+		final testHxmlFiles = processTest(t);
+		if(testHxmlFiles == null) {
 			failures++;
+		} else {
+			hxmlFiles.set(t, testHxmlFiles);
 		}
 	}
 
@@ -148,8 +153,22 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	}
 
 	for(t in tests) {
-		if(!processCsCompile(t, systemName, originalCwd)) {
-			failures++;
+		var testHxmlFiles = hxmlFiles.get(t);
+
+		if(testHxmlFiles == null || testHxmlFiles.length == 1) {
+			// If only 1 `.hxml` file, pass as `null`.
+			testHxmlFiles = [null];
+		} else {
+			// Remove `.hxml` extension for directory name.
+			testHxmlFiles = testHxmlFiles.map(haxe.io.Path.withoutExtension);
+		}
+
+		// Compile C# output generated from each `.hxml` file.
+		for(maybeHxmlFile in testHxmlFiles) {
+			if(!processCsCompile(t, systemName, originalCwd, maybeHxmlFile)) {
+				failures++;
+				break;
+			}
 		}
 	}
 
@@ -169,7 +188,11 @@ function checkAndReadDir(path: String): Array<String> {
 	return sys.FileSystem.readDirectory(path);
 }
 
-function processTest(t: String): Bool {
+/**
+	If the test was successful, returns an array of all the `.hxml` files.
+	Returns `null` if failed.
+**/
+function processTest(t: String): Null<Array<String>> {
 	Sys.println("-- " + t + " --");
 	final testDir = haxe.io.Path.join([TEST_DIR, t]);
 	final hxmlFiles = checkAndReadDir(testDir).filter(function(file) {
@@ -178,9 +201,9 @@ function processTest(t: String): Bool {
 	});
 	return if(hxmlFiles.length == 0) {
 		printFailed("No .hxml files found in test directory: `" + testDir + "`!");
-		false;
+		null;
 	} else {
-		executeTests(testDir, hxmlFiles);
+		executeTests(testDir, hxmlFiles) ? hxmlFiles : null;
 	}
 }
 
@@ -192,8 +215,10 @@ function printFailed(msg: Null<String> = null) {
 }
 
 function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
+	final hasMultipleHxmlFiles = hxmlFiles.length > 1;
 	for(hxml in hxmlFiles) {
 		final absPath = haxe.io.Path.join([testDir, hxml]);
+		final outputSubDir = hasMultipleHxmlFiles ? haxe.io.Path.withoutExtension(hxml) : null;
 		final systemNameDefine = Sys.systemName().toLowerCase();
 		final args = [
 			"--no-opt",
@@ -203,7 +228,7 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 			"-lib reflaxe",
 			"extraParams.hxml",
 			"-cp " + testDir,
-			"--custom-target csharp=" + haxe.io.Path.join([testDir, getOutputDirectory(testDir)]),
+			"--custom-target csharp=" + getOutputDirectory(testDir, outputSubDir),
 			"-D " + systemNameDefine,
 			"-D reflaxe_no_generated_metadata", // Don't generate metadata in _GeneratedFiles.txt
 			"\"" + absPath + "\""
@@ -262,10 +287,25 @@ function executeLegacyCSExport(testDir: String, hxml: String) {
 
 }
 
-function getOutputDirectory(testDir: String): String {
+function getOutputDirectory(testDir: String, subDir: Null<String>) {
+	final parts = [
+		testDir,
+		getOutputDirectoryName(testDir)
+	];
+
+	if(subDir != null) {
+		parts.push(subDir);
+	}
+
+	return haxe.io.Path.join(parts);
+}
+
+function getOutputDirectoryName(testDir: String): String {
 	final sysDir = INTENDED_DIR + "-" + Sys.systemName();
+	final sysDirExists = sys.FileSystem.exists(haxe.io.Path.join([testDir, sysDir]));
 	return if(UpdateIntended) {
-		if(sys.FileSystem.exists(haxe.io.Path.join([testDir, sysDir]))) {
+		// If the system exclusive directory exists, use it instead
+		if(sysDirExists) {
 			sysDir;
 		} else {
 			INTENDED_DIR;
@@ -431,7 +471,7 @@ function compareFiles(fileA: String, fileB: String): Null<String> {
 	return null;
 }
 
-function processCsCompile(t: String, systemName: String, originalCwd: String): Bool {
+function processCsCompile(t: String, systemName: String, originalCwd: String, subDir: Null<String>): Bool {
 	// Implement compile commands before allowing this func
 	// Sys.println("Compiling not implemented");
 	// return true;
@@ -443,7 +483,10 @@ function processCsCompile(t: String, systemName: String, originalCwd: String): B
 	// This is now done automatically within compiler
 	// createCsProjBuildFiles(t);
 
-	final testOutDir = haxe.io.Path.join([TEST_DIR, t, OUT_DIR]);
+	final testOutDirParts = [TEST_DIR, t, OUT_DIR];
+	if(subDir != null) testOutDirParts.push(subDir);
+	final testOutDir = haxe.io.Path.join(testOutDirParts);
+	trace(testOutDir);
 
 	if(!sys.FileSystem.exists(testOutDir)) {
 		sys.FileSystem.createDirectory(testOutDir);
