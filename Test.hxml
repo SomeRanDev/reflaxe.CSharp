@@ -1,4 +1,4 @@
 # Used for testing, test directory at "test/".
 # Use the "help" argument to get started: `haxe Test.hxml help`
--cp test/src
+-cp test
 --run TestRunner
