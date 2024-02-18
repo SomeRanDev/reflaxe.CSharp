@@ -1,0 +1,26 @@
+{
+    "indentation": {
+        "character": "tab"
+    },
+    "whitespace": {
+        "typeHintColonPolicy": "onlyAfter"
+    },
+    "wrapping": {
+        "maxLineLength": 999999999,
+        "arrayWrap": {
+            "defaultWrap": "keep"
+        },
+        "callParameter": {
+            "defaultWrap": "keep"
+        },
+        "anonFunctionSignature": {
+            "defaultWrap": "keep"
+        },
+        "functionSignature": {
+            "defaultWrap": "keep"
+        },
+        "opBoolChain": {
+            "defaultWrap": "keep"
+        }
+    }
+}
