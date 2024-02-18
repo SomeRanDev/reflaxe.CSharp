@@ -18,7 +18,7 @@ class CSEnum extends CSBase {
 
 		TODO.
 	**/
-	public function compile(enumType: EnumType, options: Array<EnumOptionData>): Null<String> {
+	public function compile(enumType: EnumType, options: Array<EnumOptionData>) {
 		return null;
 	}
 }

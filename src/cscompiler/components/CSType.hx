@@ -151,7 +151,7 @@ class CSType extends CSBase {
 	**/
 	public function compileClassName(classType: ClassType, withPack: Bool = false): String {
 		return if(withPack) {
-			getNameSpace(classType) + "." + classType.getNameOrNative();
+			compileNameSpace(classType) + "." + classType.getNameOrNative();
 		} else {
 			classType.getNameOrNative();
 		}
@@ -163,7 +163,7 @@ class CSType extends CSBase {
 	**/
 	public function compileEnumName(enumType: EnumType, withPack: Bool = false): String {
 		return if(withPack) {
-			getNameSpace(enumType) + "." + enumType.getNameOrNative();
+			compileNameSpace(enumType) + "." + enumType.getNameOrNative();
 		} else {
 			enumType.getNameOrNative();
 		}
@@ -172,7 +172,7 @@ class CSType extends CSBase {
 	/**
 		Get a C# namespace for the given package
 	**/
-	public function getNameSpace(baseType: BaseType):String {
+	public function compileNameSpace(baseType: BaseType):String {
 		final pack = getPackWithoutModule(baseType);
 		if (pack.length == 0) {
 			return CSCompiler.DEFAULT_ROOT_NAMESPACE;

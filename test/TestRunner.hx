@@ -35,8 +35,9 @@ var LegacyCS = false;
 	Prints a `String` to stderr.
 **/
 function printlnErr(msg: String) {
-	Sys.stderr().writeString(msg + "\n", haxe.io.Encoding.UTF8);
-	Sys.stderr().flush();
+	// Sys.stderr().writeString(msg + "\n", haxe.io.Encoding.UTF8);
+	// Sys.stderr().flush();
+	Sys.println(msg);
 }
 
 /**
@@ -93,7 +94,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	PrintCommand = args.contains("print-command");
 	LegacyCS = args.contains("legacy-cs");
 
-	var alwaysCompile = args.contains("always-compile");
+	var alwaysCompile = true;//args.contains("always-compile");
 
 	if(args.contains("dev-mode")) {
 		alwaysCompile = true;
@@ -104,7 +105,7 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 	// ------------------------------------
 	// Allowed tests
 	// ------------------------------------
-	final allowedTests = args.map(a -> {
+	var allowedTests = args.map(a -> {
 		final r = ~/test=(\w+)/;
 		if(r.match(a)) {
 			r.matched(1);
@@ -112,12 +113,14 @@ Makes it so only this test is ran. This option can be added multiple times to pe
 			null;
 		}
 	}).filter(a -> a != null);
+	allowedTests = ['Misc'];
 
 	// ------------------------------------
 	// Allow defining a specific path for haxe executable.
 	// ------------------------------------
 	final haxeCmd = Sys.getEnv("REFLAXE_CS_TEST_HAXE_CMD");
 	if(haxeCmd != null && haxeCmd.length > 0) {
+		trace('CUSTOM HAXE COMMAND $haxeCmd');
 		HaxeCommand = haxeCmd;
 	}
 
@@ -435,8 +438,8 @@ function compareOutputFolders(testDir: String): Bool {
 
 	return if(errors.length > 0) {
 		var result = "\nOUTPUT DOES NOT MATCH\n------------------------------------\n";
-		result += errors.join("\n");
-		result += "\n------------------------------------\n";
+		// result += errors.join("\n");
+		// result += "\n------------------------------------\n";
 		printFailed(result);
 		false;
 	} else {

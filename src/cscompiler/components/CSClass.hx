@@ -18,15 +18,6 @@ using reflaxe.helpers.SyntaxHelper;
 	classes into C#.
 **/
 class CSClass extends CSBase {
-	/**
-		The list of variables compiled into C# accumulated while compiling the class.
-	**/
-	var variables: Array<String> = [];
-
-	/**
-		The list of functions compiled into C# accumulated while compiling the class.
-	**/
-	var functions: Array<String> = [];
 
 	/**
 		C# name of the class currently being compiled.
@@ -42,35 +33,41 @@ class CSClass extends CSBase {
 		Called at the start of a class' compilation to reset the variables.
 	**/
 	function init(classType: ClassType) {
-		variables = [];
-		functions = [];
 
 		final className = classType.name;
 		csClassName = compiler.compileClassName(classType);
-		csNameSpace = compiler.typeComp.getNameSpace(classType);
+		csNameSpace = compiler.typeComp.compileNameSpace(classType);
 	}
 
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
-	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
+	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>) {
+
 		// TODO: Set the output folder for the file this will be generated for
 		// compiler.setOutputFileDir("src");
 
 		// Stores all the variables and fields to put together later.
 		init(classType);
 
-		var declaration = "";
+		// Compile namespace
+		write("namespace ");
+		write(csNameSpace);
+		write(" {");
+		indent();
+		line();
 
 		// Compile metadata (built-in Reflaxe function)
 		final clsMeta = compiler.compileMetadata(classType.meta, MetadataTarget.Class) ?? "";
-		declaration += clsMeta;
+		write(clsMeta);
 
 		// Basic declaration
-		declaration += "class " + csClassName;
+		write("class " + csClassName);
 		if(classType.superClass != null) {
-			declaration += ": " + compiler.compileClassName(classType.superClass.t.get());
+			write(": " + compiler.compileClassName(classType.superClass.t.get()));
 		}
+		write(" {");
+		line();
 
 		// Variables
 		for(v in varFields) {
@@ -82,33 +79,16 @@ class CSClass extends CSBase {
 			compileFunction(f, classType);
 		}
 
-		// if there are no instance variables or functions,
-		// we don't need to generate a class
-		if(variables.length <= 0 && functions.length <= 0) {
-			return null;
-		}
+		// End of class
+		unindent();
+		line("}");
 
-		// Let's put everything together to make the C# class!
-		return {
-			final content = [];
+		// End of namespace
+		unindent();
+		line("}");
 
-			if(variables.length > 0) {
-				content.push(variables.map(v -> v.tab()).join("\n\n"));
-			}
+		return printer;
 
-			if(functions.length > 0) {
-				content.push(functions.map(v -> v.tab()).join("\n\n"));
-			}
-
-			var result = declaration + " {\n";
-			result += content.join("\n\n");
-			result += "\n}\n";
-
-			result = compiler.wrapNameSpace(csNameSpace, result);
-			result = compiler.cleanWhiteSpaces(result);
-
-			result;
-		}
 	}
 
 	/**
@@ -117,26 +97,34 @@ class CSClass extends CSBase {
 	function compileVariable(v: ClassVarData) {
 		final field = v.field;
 
-		// Compile name
-		final varName = compiler.compileVarName(field.name, null, field);
+		// Compile metadata
+		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField);
+
+		// Put it all together to make C# variable
+		if (meta != null)
+			write(meta);
+
+		if (v.isStatic)
+			write("static ");
 
 		// Compile type
-		final varType = compiler.compileType(field.type, field.pos);
+		write(compiler.compileType(field.type, field.pos) ?? "var");
+
+		// Compile name
+		final varName = compiler.compileVarName(field.name, null, field);
+		write(" ");
+		write(varName);
 
 		// Compile expression
 		final e = field.expr();
-		final csExpr = if(e != null) {
+		if (e != null) {
+			write(" = ");
 			compiler.compileClassVarExpr(e);
-		} else {
-			"";
 		}
 
-		// Compile metadata
-		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		write(";");
+		line();
 
-		// Put it all together to make C# variable
-		final decl = meta + (v.isStatic ? "static " : "") + (varType ?? "var") + " " + varName + (csExpr.length == 0 ? "" : (" = " + csExpr)) + ";";
-		variables.push(decl);
 	}
 
 	/**
@@ -151,7 +139,9 @@ class CSClass extends CSBase {
 		final name = isConstructor ? csClassName : compiler.compileVarName(field.name);
 
 		// Compile metadata
-		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField);
+		if (meta != null)
+			write(meta);
 
 		// If a dynamic function, we want to compile as function variable.
 		if(f.kind == MethDynamic) {
@@ -159,9 +149,14 @@ class CSClass extends CSBase {
 			// so we don't need to do anything special to compile it as a lambda.
 			final e = field.expr();
 			if(e != null) {
-				final callable = compiler.compileClassVarExpr(e);
-				final decl = meta + (f.isStatic ? "static " : "") + "var " + name + " = " + callable;
-				variables.push(decl);
+				if (f.isStatic)
+					write("static");
+
+				write("var ");
+				write(name);
+				write(" = ");
+
+				compiler.compileClassVarExpr(e);
 			}
 		} else {
 			// Compile arguments
@@ -175,66 +170,102 @@ class CSClass extends CSBase {
 			// Compile return type
 			final ret = isConstructor ? null : compiler.compileType(f.ret, field.pos);
 
+			for (modifier in getFunctionModifiers(f, classType)) {
+				write(modifier);
+				write(" ");
+			}
+
+			if (!isConstructor && ret != null) {
+				write(ret);
+				write(" ");
+			}
+
+			write(name);
+
+			write("(");
+			for (a in f.args) {
+				if (a.isFrontOptional())
+					compiler.compileFunctionArgument(a.type, a.name, field.pos, false, null);
+				else
+					compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr);
+			}
+			write(")");
+
+
 			// Compile expression - Use `data.expr` instead of `field.expr()`
 			// since it provides the contents of the function.
-			final csExpr = {
-				if(f.expr != null) {
-					final code = compiler.compileClassFuncExpr(f.expr);
-					"{\n" + code.tab() + "\n}";
-				} else {
-					";";
-				}
-			}
+			if(f.expr != null) {
+				write("{");
+				indent();
+				line();
 
-			// Put it all together to make the C# function
-			final props = compileFunctionProperties(f, classType).join(" ");
-			final func = meta + props + " " + (!isConstructor ? ret + " " : "") + name + "(" + arguments.join(", ") + ") " + csExpr;
-			functions.push(func);
+				compiler.compileClassFuncExpr(f.expr);
+
+				unindent();
+				line();
+				write("}");
+
+			} else {
+				write(";");
+			}
+			line();
 
 			// Resolve variations
-			final variations = f.findAllArgumentVariations(true, true);
-			if(variations != null && variations.length > 1) {
-				for(v in variations) {
-					if (v.args.length < f.args.length) {
-						// Compile arguments
-						final vArguments = v.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
+			// For now, we skip that part, because variation based on overload won't cover all cases anyway (dynamic access...)
+			// TODO: Will get back to this later
 
-						// Compile internal call arguments
-						final vCallArgs = f.args.map(a -> {
-							var def = true;
-							for(arg in v.args) {
-								if(arg.name == a.name) {
-									def = false;
-									break;
-								}
-							}
-							def && a.expr != null ? compiler.compileExpression(a.expr) : a.name;
-						});
+			// final variations = f.findAllArgumentVariations(true, true);
+			// if(variations != null && variations.length > 1) {
+			// 	for(v in variations) {
+			// 		if (v.args.length < f.args.length) {
+			// 			// Compile arguments
+			// 			final vArguments = v.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
 
-						// Compile expression
-						final csExpr = {
-							if(f.expr != null) {
-								final code = (ret != "void" ? "return " : "") + name + "(" + vCallArgs.join(", ") + ");";
-								"{\n" + code.tab() + "\n}";
-							} else {
-								";";
-							}
-						}
+			// 			// Compile internal call arguments
+			// 			final vCallArgs = f.args.map(a -> {
+			// 				var def = true;
+			// 				for(arg in v.args) {
+			// 					if(arg.name == a.name) {
+			// 						def = false;
+			// 						break;
+			// 					}
+			// 				}
+			// 				def && a.expr != null ? compiler.compileExpression(a.expr) : a.name;
+			// 			});
 
-						// Put it all together to make the C# function
-						final props = compileFunctionProperties(f, classType).join(" ");
-						final func = meta + props + " " + ret + " " + name + "(" + vArguments.join(", ") + ") " + csExpr;
-						functions.push(func);
-					}
-				}
-			}
+			// 			// Compile metadata
+			// 			final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField);
+			// 			if (meta != null)
+			// 				write(meta);
+
+			// 			for (modifier in getFunctionModifiers(f, classType)) {
+			// 				write(modifier);
+			// 				write(" ");
+			// 			}
+
+			// 			// Compile expression
+			// 			final csExpr = {
+			// 				if(f.expr != null) {
+			// 					final code = (ret != "void" ? "return " : "") + name + "(" + vCallArgs.join(", ") + ");";
+			// 					"{\n" + code.tab() + "\n}";
+			// 				} else {
+			// 					";";
+			// 				}
+			// 			}
+
+			// 			final func = meta + props + " " + ret + " " + name + "(" + vArguments.join(", ") + ") " + csExpr;
+
+			// 			write(func);
+			// 		}
+			// 	}
+			// }
 		}
 	}
 
 	/**
-		Returns a list of all the C# properties to be appened to a C# function.
+		Get a list of all the C# modifiers to be prepended to a C# function.
 	**/
-	function compileFunctionProperties(f: ClassFuncData, classType: ClassType): Array<String> {
+	function getFunctionModifiers(f: ClassFuncData, classType: ClassType): Array<String> {
 		final field = f.field;
 
 		final props = [ "public" ]; // Always public

@@ -11,7 +11,12 @@ class Main {
 
 		trueValue = true;
 		falseValue = false;
-		// testAssignment();
+		testAssignment();
+
+		var test = [1, 2, 4];
+		trace(test);
+		trace(test[0]);
+
 		// testNullAssignment();
 		// testUnops();
 		// testNullUnops();
@@ -32,6 +37,7 @@ class Main {
 		numTests++;
 		if (expected != actual) {
 			numFailures++;
+			untyped __cs__("System.Console.WriteLine({0})", "Num failures: " + numFailures);
 			//Console.WriteLine('${p.lineNumber}: Failed!');
 		}
 	}
@@ -83,25 +89,46 @@ class Main {
 	static var staticVar:Int;
 	static var staticNullVar:Null<Int>;
 
-	// static function testAssignment() {
-	// 	var a = 1;
-	// 	eq(1, a);
-	// 	a = 2;
-	// 	eq(2, a);
+	static function testAssignment() {
+		testAssignment1A();
+		testAssignment1B();
+		testAssignment2();
+		final m = testAssignment3();
+		testAssignment4(m);
+		testAssignment5(m);
+	}
 
-	// 	staticVar = 1;
-	// 	eq(1, staticVar);
+	static function testAssignment1A() {
+		var a = 1;
+		eq(1, a);
+	}
 
-	// 	var m = new Main();
-	// 	m.localVar = 1;
-	// 	eq(1, m.localVar);
+	static function testAssignment1B() {
+		var a = 2;
+		eq(2, a);
+	}
 
-	// 	m.localVar += m.localVar += 1;
-	// 	eq(3, m.localVar);
+	static function testAssignment2() {
+		staticVar = 1;
+		eq(1, staticVar);
+	}
 
-	// 	m.localVar = m.localVar += 1;
-	// 	eq(4, m.localVar);
-	// }
+	static function testAssignment3() {
+		var m = new Main();
+		m.localVar = 1;
+		eq(1, m.localVar);
+		return m;
+	}
+
+	static function testAssignment4(m:Main) {
+		m.localVar += m.localVar += 1;
+		eq(3, m.localVar);
+	}
+
+	static function testAssignment5(m:Main) {
+		m.localVar = m.localVar += 1;
+		eq(4, m.localVar);
+	}
 
 	// static function testNullAssignment() {
 	// 	var a:Null<Int> = 1;

@@ -20,190 +20,248 @@ class CSExpression extends CSBase {
 	/**
 		Calls `compiler.compileExpressionOrError`.
 	**/
-	function _compileExpression(e: TypedExpr): String {
+	function _compileExpression(e: TypedExpr): Null<CSPrinter> {
 		return compiler.compileExpressionOrError(e);
 	}
 
 	/**
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
-	public function compile(expr: TypedExpr, topLevel: Bool): Null<String> {
-		var result = "";
-		switch(expr.expr) {
+	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSPrinter> {
+		return switch(expr.expr) {
 			case TConst(constant): {
-				result = constantToCS(constant);
+				write(constantToCS(constant));
 			}
 			case TLocal(v): {
-				result = compiler.compileVarName(v.name, expr);
+				write(compiler.compileVarName(v.name, expr));
 			}
 			case TIdent(s): {
-				result = compiler.compileVarName(s, expr);
+				write(compiler.compileVarName(s, expr));
 			}
 			case TArray(e1, e2): {
-				result = _compileExpression(e1) + "[" + _compileExpression(e2) + "]";
+				_compileExpression(e1);
+				write("[");
+				_compileExpression(e2);
+				write("]");
 			}
 			case TBinop(op, e1, e2): {
-				result = binopToCS(op, e1, e2);
+				write(binopToCS(op, e1, e2));
 			}
 			case TField(e, fa): {
-				result = fieldAccessToCS(e, fa);
+				compileFieldAccess(e, fa);
 			}
 			case TTypeExpr(m): {
-				result = compiler.compileModuleType(m);
+				write(compiler.compileModuleType(m));
 			}
 			case TParenthesis(e): {
-				final csExpr = _compileExpression(e);
-				result = if(!EverythingIsExprSanitizer.isBlocklikeExpr(e)) {
-					"(" + csExpr + ")";
+				if(!EverythingIsExprSanitizer.isBlocklikeExpr(e)) {
+					write("(");
+					_compileExpression(e);
+					write(")");
 				} else {
-					csExpr;
+					_compileExpression(e);
 				}
 			}
 			case TObjectDecl(fields): {
 				// TODO: Anonymous structure expression?
+				write("/*TObjectDecl(...)*/null");
 			}
 			case TArrayDecl(el): {
 				// TODO: Array expression?
 				// result = "new type[] {" + el.map(e -> _compileExpression(e)).join(", ") + "}";
+				null;
 			}
 			case TCall(e, el): {
 				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
 				final nfc = compiler.compileNativeFunctionCodeMeta(e, el);
-				result = if(nfc != null) {
-					nfc;
+				if(nfc != null) {
+					write(nfc);
 				} else {
-					final arguments = el.map(e -> _compileExpression(e)).join(", ");
-					_compileExpression(e) + "(" + arguments + ")";
+					_compileExpression(e);
+					write("(");
+					for (i in 0...el.length) {
+						_compileExpression(el[i]);
+						if (i > 0)
+							write(", ");
+					}
+					write(")");
 				}
 			}
 			case TNew(classTypeRef, _, el): {
 				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
 				final nfc = compiler.compileNativeFunctionCodeMeta(expr, el);
-				result = if(nfc != null) {
-					nfc;
+				if(nfc != null) {
+					write(nfc);
 				} else {
-					final args = el.map(e -> _compileExpression(e)).join(", ");
-					final className = compiler.compileClassName(classTypeRef.get());
-					"new " + className + "(" + args + ")";
+					write("new ");
+					write(compiler.compileClassName(classTypeRef.get()));
+					write("(");
+					for (i in 0...el.length) {
+						_compileExpression(el[i]);
+						if (i > 0)
+							write(", ");
+					}
+					write(")");
 				}
 			}
 			case TUnop(op, postFix, e): {
-				result = unopToCS(op, e, postFix);
+				write(unopToCS(op, e, postFix));
 			}
 			case TFunction(tfunc): {
 				// TODO: Lambda?
+				null;
 			}
 			case TVar(tvar, maybeExpr): {
-				result = compiler.compileType(tvar.t, expr.pos) + " " + compiler.compileVarName(tvar.name, maybeExpr);
+				write(compiler.compileType(tvar.t, expr.pos) ?? "var");
+				write(" ");
+				write(compiler.compileVarName(tvar.name, maybeExpr));
 
 				// Not guaranteed to have expression, be careful!
 				if(maybeExpr != null) {
-					final e = _compileExpression(maybeExpr);
-					result += " = " + e;
+					write(" = ");
+					_compileExpression(maybeExpr);
 				}
+				printer;
 			}
 			case TBlock(expressionList): {
 				// TODO: Should we still generate even if empty?
 				if(expressionList.length > 0) {
-					result = "{\n" + toIndentedScope(expr) + "\n}";
+					beginBlock("{");
+					compileBlockScope(expr);
+					endBlock("}");
 				}
+				printer;
 			}
 			case TFor(tvar, iterExpr, blockExpr): {
 				// TODO: When is TFor even provided (usually converted to TWhile)?
 				// Will C# foreach work?
-				result = "foreach(var " + tvar.name + " in " + _compileExpression(iterExpr) + ") {\n";
-				result += toIndentedScope(blockExpr);
-				result += "\n}";
+				write("foreach (var ");
+				write(tvar.name);
+				write(" in ");
+				_compileExpression(iterExpr);
+				write(") ");
+				beginBlock("{");
+				compileBlockScope(blockExpr);
+				endBlock("}");
 			}
 			case TIf(condExpr, ifContentExpr, elseExpr): {
-				result = compileIf(condExpr, ifContentExpr, elseExpr);
+				compileIf(condExpr, ifContentExpr, elseExpr);
 			}
 			case TWhile(condExpr, blockExpr, normalWhile): {
-				final csExpr = _compileExpression(condExpr);
 				if(normalWhile) {
-					result = "while(" + csExpr + ") {\n";
-					result += toIndentedScope(blockExpr);
-					result += "\n}";
+					write("while (");
+					_compileExpression(condExpr);
+					write(") ");
+					beginBlock("{");
+					compileBlockScope(blockExpr);
+					endBlock("}");
 				} else {
-					result = "do {\n";
-					result += toIndentedScope(blockExpr);
-					result += "} while(" + csExpr + ");";
+					write("do ");
+					beginBlock("{");
+					compileBlockScope(blockExpr);
+					endBlock("}");
+					write(" while (");
+					_compileExpression(condExpr);
+					write(");");
 				}
 			}
 			case TSwitch(switchedExpr, cases, edef): {
 				// Haxe only generates `TSwitch` for switch statements only using numbers (I think?).
 				// So this should be safe to translate directly to C# switch.
-				result = "switch(" + _compileExpression(switchedExpr) + ") {\n";
+				write("switch (");
+				_compileExpression(switchedExpr);
+				write(") ");
+				beginBlock("{");
 				for(c in cases) {
-					result += "\n";
 					for(v in c.values) {
-						result += "\tcase" + _compileExpression(v) + ":\n";
+						write("case ");
+						_compileExpression(v);
+						writeln(":");
 					}
-					result += toIndentedScope(c.expr).tab();
-					result += "\t\tbreak;";
+					indent();
+					compileBlockScope(c.expr);
+					line("break");
+					unindent();
 				}
 				if(edef != null) {
-					result += "\n";
-					result += "\tdefault:\n";
-					result += toIndentedScope(edef).tab();
-					result += "\t\tbreak;";
+					line("default:");
+					indent();
+					compileBlockScope(edef);
+					line("break");
+					unindent();
 				}
+				endBlock("}");
 			}
 			case TTry(e, catches): {
-				result += "try {\n";
-				result += toIndentedScope(e);
-				result += "\n}";
+				write("trye ");
+				beginBlock("{");
+				compileBlockScope(e);
+				endBlock("}");
 				// TODO: Might need to guarantee Haxe exception type?
 				// Use PlatformConfig
 				for(c in catches) {
-					result += "catch(" + compiler.compileFunctionArgument(c.v.t, c.v.name, expr.pos, false, null) + ") {\n";
-					result += toIndentedScope(c.expr);
-					result += "\n}";
+					write(" catch (");
+					compiler.compileFunctionArgument(c.v.t, c.v.name, expr.pos, false, null);
+					write(") ");
+					beginBlock("{");
+					compileBlockScope(c.expr);
+					endBlock("}");
 				}
+				printer;
 			}
 			case TReturn(maybeExpr): {
 				// Not guaranteed to have expression, be careful!
 				if(maybeExpr != null) {
-					result = "return " + _compileExpression(maybeExpr);
+					write("return ");
+					_compileExpression(maybeExpr);
 				} else {
-					result = "return";
+					write("return");
 				}
 			}
 			case TBreak: {
-				result = "break";
+				write("break");
 			}
 			case TContinue: {
-				result = "continue";
+				write("continue");
 			}
 			case TThrow(subExpr): {
 				// Can C# throw anything?
-				result = "throw " + _compileExpression(subExpr) + ";";
+				write("throw ");
+				_compileExpression(subExpr);
+				write(";");
 			}
 			case TCast(subExpr, maybeModuleType): {
-				result = _compileExpression(subExpr);
 
 				// Not guaranteed to have module, be careful!
 				if(maybeModuleType != null) {
-					result = "(" + result + " as " + compiler.compileModuleType(maybeModuleType) + ")";
+					write("(");
+					_compileExpression(subExpr);
+					write(" as ");
+					compiler.compileModuleType(maybeModuleType);
+					write(")");
+				}
+				else {
+					_compileExpression(subExpr);
 				}
 			}
 			case TMeta(metadataEntry, subExpr): {
 				// TODO: Handle expression meta?
 				// Only works if `-D retain-untyped-meta` is enabled.
-				result = _compileExpression(subExpr);
+				_compileExpression(subExpr);
 			}
 			case TEnumParameter(subExpr, enumField, index): {
 				// TODO
 				// Given an expression that is an instance of an enum,
 				// generate the C# code to extract a value from this enum.
+				null;
 			}
 			case TEnumIndex(subExpr): {
 				// TODO
 				// Given an expression that is an instance of an enum,
 				// generate the C# code to extract its index.
+				null;
 			}
 		}
-		return result;
 	}
 
 	/**
@@ -216,16 +274,14 @@ class CSExpression extends CSBase {
 
 		Each line of the output is preemptively tabbed.
 	**/
-	function toIndentedScope(e: TypedExpr): String {
+	function compileBlockScope(e: TypedExpr) {
 		var el = switch(e.expr) {
 			case TBlock(el): el;
 			case _: [e];
 		}
 
-		return if(el.length == 0) {
-			"";
-		} else {
-			compiler.compileExpressionsIntoLines(el).tab();
+		if(el.length > 0) {
+			compiler.compileExpressionsIntoLines(el);
 		}
 	}
 
@@ -273,7 +329,7 @@ class CSExpression extends CSBase {
 	/**
 		Generate an expression given a `FieldAccess` and typed expression (from `TypedExprDef.TField`).
 	**/
-	function fieldAccessToCS(e: TypedExpr, fa: FieldAccess): String {
+	function compileFieldAccess(e: TypedExpr, fa: FieldAccess) {
 		final nameMeta: NameAndMeta = switch(fa) {
 			case FInstance(_, _, classFieldRef): classFieldRef.get();
 			case FStatic(_, classFieldRef): classFieldRef.get();
@@ -283,8 +339,8 @@ class CSExpression extends CSBase {
 			case FDynamic(s): { name: s, meta: null };
 		}
 
-		return if(nameMeta.hasMeta(":native")) {
-			nameMeta.getNameOrNative();
+		return if (nameMeta.hasMeta(":native")) {
+			write(nameMeta.getNameOrNative());
 		} else {
 			final name = compiler.compileVarName(nameMeta.getNameOrNativeName());
 
@@ -303,7 +359,7 @@ class CSExpression extends CSBase {
 				case _:
 			}
 
-			final csExpr = _compileExpression(e);
+			_compileExpression(e);
 
 			// Check if a special field access that requires the compiled expression.
 			switch(fa) {
@@ -314,28 +370,48 @@ class CSExpression extends CSBase {
 				case _:
 			}
 
-			csExpr + "." + name;
+			write(".");
+			write(name);
 		}
 	}
 
 	function compileIf(condExpr: TypedExpr, ifContentExpr: TypedExpr, elseExpr: Null<TypedExpr>) {
-		var result = "if(" + _compileExpression(condExpr.unwrapParenthesis()) + ") {\n";
-		result += toIndentedScope(ifContentExpr);
+		write("if (");
+		_compileExpression(condExpr.unwrapParenthesis());
+		write(") {");
+		indent();
+		line();
+
+		compileBlockScope(ifContentExpr);
+
 		if(elseExpr != null) {
 			switch(elseExpr.expr) {
 				case TIf(condExpr2, ifContentExpr2, elseExpr2): {
-					result += "\n} else " + compileIf(condExpr2, ifContentExpr2, elseExpr2);
+					unindent();
+					line();
+					write("} else ");
+					compileIf(condExpr2, ifContentExpr2, elseExpr2);
 				}
 				case _: {
-					result += "\n} else {\n";
-					result += toIndentedScope(elseExpr);
-					result += "\n}";
+					unindent();
+					line();
+					write("} else {");
+					indent();
+					line();
+
+					compileBlockScope(elseExpr);
+
+					unindent();
+					line();
+					write("}");
 				}
 			}
 		} else {
-			result += "\n}";
+			unindent();
+			line();
+			write("}");
 		}
-		return result;
+		return printer;
 	}
 }
 #end
