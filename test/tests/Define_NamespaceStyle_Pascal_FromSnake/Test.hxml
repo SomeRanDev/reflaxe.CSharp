@@ -1,0 +1,6 @@
+# The following are added automatically:
+# -lib csharp
+# --custom-target rcs=out
+
+-main namespacestyle.pascal.from_snake.Main
+-D namespace_style=pascal
