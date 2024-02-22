@@ -10,17 +10,17 @@ import reflaxe.helpers.Context; // same as haxe.macro.Context
 @:using(cscompiler.config.Define.DefineTools)
 enum abstract Define(String) from String to String {
 	/**
-		-D csproj=[path to file]
+		`-D csproj=[path to file]`
 
-		When set, the csproj at the specified path will be used for C#
+		When set, the `.csproj` at the specified path will be used for C#
 		instead of an auto-generated csproj.
 
-		This will be ignored when the `Define` `no-csproj` is set.
+		This will be ignored when `-D no_csproj` is defined.
 	**/
 	var D_Csproj = "csproj";
 
 	/**
-		-D namespace_style=[default|pascal]
+		`-D namespace_style=[default|pascal]`
 
 		Default value: `default`
 
@@ -32,14 +32,13 @@ enum abstract Define(String) from String to String {
 	var D_NamespaceStyle = "namespace_style";
 
 	/**
-		-D no-csproj
+		`-D no_csproj`
 
-		When set, a csproj file will not be generated C#.
+		When set, a `.csproj` file will not be generated C#.
 
-		This also applies to any csproj file specified with
-		the Define `csproj`.
+		`-D csproj` does nothing when this is defined.
 	**/
-	var D_NoCsproj = "no-csproj";
+	var D_NoCsproj = "no_csproj";
 }
 
 /**
