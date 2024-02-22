@@ -2,6 +2,9 @@ package cscompiler;
 
 #if (macro || cs_runtime)
 
+import sys.io.File;
+
+import haxe.io.Path;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
@@ -24,6 +27,7 @@ using reflaxe.helpers.TypeHelper;
 // ---
 
 import cscompiler.components.*;
+import cscompiler.config.Define;
 
 /**
 	The class that manages the generation of the C# code.
@@ -126,18 +130,31 @@ namespace Haxe {
 	}
 
 	/**
-		Generates the .csproj file.
+		Adds a .csproj file to the output directory.
+
+		If the Define `no-csproj` is specified, then nothing is added.
+
+		Otherwise, if the Define `csproj` specifies a path to an existing
+		.csproj file, then that is used.
+
+		Otherwise, a default .csproj is generated.
 	**/
 	function setupCsProj() {
-		if(!Context.defined("no-csproj")) {
-			appendToExtraFile("build.csproj", csProjContent());
+		if (D_NoCsproj.isDefined()) {
+			return;
 		}
+		if (!D_Csproj.isDefined()) {
+			appendToExtraFile("build.csproj", csProjDefaultContent());
+			return;
+		}
+		final path = new Path(Context.resolvePath(D_Csproj.getValue()));
+		appendToExtraFile('${path.file}.${path.ext}', File.getContent(path.toString()));
 	}
 
 	/**
-		Returns the content of the .csproj file.
+		Returns the default content of the .csproj file.
 	**/
-	function csProjContent() {
+	function csProjDefaultContent() {
 		return StringTools.trim('
 <Project Sdk="Microsoft.NET.Sdk">
 
