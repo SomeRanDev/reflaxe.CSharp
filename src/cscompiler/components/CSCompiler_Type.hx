@@ -11,6 +11,7 @@ import cscompiler.config.Define;
 import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
 import cscompiler.helpers.StringTools;
+import cscompiler.ast.CSClassRef;
 
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
@@ -20,6 +21,7 @@ using reflaxe.helpers.NameMetaHelper;
 	types into C#.
 **/
 class CSCompiler_Type extends CSCompiler_Base {
+
 	/**
 		Generates the C# type code given the Haxe `haxe.macro.Type`.
 
@@ -39,10 +41,16 @@ class CSCompiler_Type extends CSCompiler_Base {
 				}
 			}
 			case TEnum(enumRef, params): {
-				withTypeParams(compileEnumName(enumRef.get()), params, pos);
+				CSInst(
+					compileEnumType(enumRef.get()),
+					compileTypeParams(params)
+				);
 			}
 			case TInst(clsRef, params): {
-				withTypeParams(compileClassName(clsRef.get()), params, pos);
+				CSInst(
+					compileClassType(clsRef.get()),
+					compileTypeParams(params)
+				);
 			}
 			case TType(_, _): {
 				compile(Context.follow(type), pos);
@@ -83,6 +91,29 @@ class CSCompiler_Type extends CSCompiler_Base {
 				}
 			}
 		}
+	}
+
+	function compileEnumType(enumType:EnumType):CSClassRef {
+
+		return new CSClassRef(
+			compileEnumName(enumType, true)
+		);
+
+	}
+
+	function compileClassType(classType:ClassType):CSClassRef {
+
+		return new CSClassRef(
+			compileClassName(classType, true)
+		);
+
+	}
+
+	function compileTypeParams(params:Array<Type>):Array<CSType> {
+
+		// TODO
+		return [];
+
 	}
 
 	/**
