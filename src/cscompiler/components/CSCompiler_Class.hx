@@ -5,6 +5,7 @@ package cscompiler.components;
 import haxe.macro.Type;
 import haxe.display.Display.MetadataTarget;
 
+import cscompiler.ast.CSClass;
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
@@ -17,7 +18,7 @@ using reflaxe.helpers.SyntaxHelper;
 	The component responsible for compiling Haxe
 	classes into C#.
 **/
-class CSClass extends CSBase {
+class CSCompiler_Class extends CSCompiler_Base {
 	/**
 		The list of variables compiled into C# accumulated while compiling the class.
 	**/
@@ -53,7 +54,10 @@ class CSClass extends CSBase {
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
-	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
+	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSClass> {
+		// Temp fix for CSType return
+		return null;
+
 		// TODO: Set the output folder for the file this will be generated for
 		// compiler.setOutputFileDir("src");
 
@@ -89,7 +93,7 @@ class CSClass extends CSBase {
 		}
 
 		// Let's put everything together to make the C# class!
-		return {
+		/* return */ {
 			final content = [];
 
 			if(variables.length > 0) {

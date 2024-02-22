@@ -10,7 +10,7 @@ import cscompiler.CSCompiler;
 	Simply stores reference to `CSCompiler` so components
 	can interact with each other.
 **/
-class CSBase {
+class CSCompiler_Base {
 	var compiler: CSCompiler;
 
 	public function new(compiler: CSCompiler) {

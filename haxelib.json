@@ -1,6 +1,6 @@
 {
   "name": "csharp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A remake of the Haxe/C# target written entirely within Haxe using Reflaxe.",
   "url": "https://github.com/RobertBorghese/reflaxe.CSharp",
   "license": "MIT",

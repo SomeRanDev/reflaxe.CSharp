@@ -12,11 +12,13 @@ using reflaxe.helpers.NameMetaHelper;
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.TypedExprHelper;
 
+import cscompiler.ast.CSStatement;
+
 /**
 	The component responsible for compiling Haxe
 	typed expressions into C#.
 **/
-class CSExpression extends CSBase {
+class CSCompiler_Expr extends CSCompiler_Base {
 	/**
 		Calls `compiler.compileExpressionOrError`.
 	**/
@@ -27,7 +29,10 @@ class CSExpression extends CSBase {
 	/**
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
-	public function compile(expr: TypedExpr, topLevel: Bool): Null<String> {
+	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
+		// Temp fix for CSStatement return
+		return null;
+
 		var result = "";
 		switch(expr.expr) {
 			case TConst(constant): {
@@ -203,7 +208,7 @@ class CSExpression extends CSBase {
 				// generate the C# code to extract its index.
 			}
 		}
-		return result;
+		/* return */ result;
 	}
 
 	/**

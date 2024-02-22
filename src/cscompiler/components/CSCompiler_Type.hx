@@ -6,10 +6,10 @@ import reflaxe.helpers.Context; // same as haxe.macro.Context
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
+import cscompiler.ast.CSType;
 import cscompiler.config.Define;
 import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
-
 import cscompiler.helpers.StringTools;
 
 using reflaxe.helpers.ModuleTypeHelper;
@@ -19,14 +19,17 @@ using reflaxe.helpers.NameMetaHelper;
 	The component responsible for compiling Haxe
 	types into C#.
 **/
-class CSType extends CSBase {
+class CSCompiler_Type extends CSCompiler_Base {
 	/**
 		Generates the C# type code given the Haxe `haxe.macro.Type`.
 
 		TODO.
 	**/
-	public function compile(type: Type, pos: Position): Null<String> {
-		return switch(type) {
+	public function compile(type: Type, pos: Position): Null<CSType> {
+		// Temp fix for CSType return
+		return null;
+
+		/* return */ switch(type) {
 			case TMono(refType): {
 				final maybeType = refType.get();
 				if(maybeType != null) {

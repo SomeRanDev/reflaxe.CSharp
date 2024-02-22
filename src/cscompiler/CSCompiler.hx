@@ -11,11 +11,13 @@ import haxe.macro.Type;
 // ---
 
 import reflaxe.BaseCompiler;
-import reflaxe.DirectToStringCompiler;
+import reflaxe.GenericCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
 import reflaxe.data.EnumOptionData;
 import reflaxe.helpers.Context;
+import reflaxe.output.DataAndFileInfo;
+import reflaxe.output.StringOrBytes;
 
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.ModuleTypeHelper;
@@ -26,6 +28,10 @@ using reflaxe.helpers.TypeHelper;
 
 // ---
 
+import cscompiler.ast.CSClass;
+import cscompiler.ast.CSEnum;
+import cscompiler.ast.CSStatement;
+import cscompiler.ast.CSType;
 import cscompiler.components.*;
 import cscompiler.config.Define;
 
@@ -34,7 +40,7 @@ import cscompiler.config.Define;
 
 	Its "impl" functions are called from Reflaxe.
 **/
-class CSCompiler extends reflaxe.DirectToStringCompiler {
+class CSCompiler extends reflaxe.GenericCompiler<CSClass, CSEnum, CSStatement> {
 	/**
 		The namespace used for top-level module types.
 	**/
@@ -43,22 +49,22 @@ class CSCompiler extends reflaxe.DirectToStringCompiler {
 	/**
 		Handles implementation of `compileClassImpl`.
 	**/
-	public var classComp(default, null): CSClass;
+	public var classComp(default, null): CSCompiler_Class;
 
 	/**
 		Handles implementation of `compileEnumImpl`.
 	**/
-	public var enumComp(default, null): CSEnum;
+	public var enumComp(default, null): CSCompiler_Enum;
 
 	/**
 		Handles implementation of `compileExprImpl`.
 	**/
-	public var exprComp(default, null): CSExpression;
+	public var exprComp(default, null): CSCompiler_Expr;
 
 	/**
 		Handles implementation of `compileType`, `compileModuleType`, and `compileClassName`.
 	**/
-	public var typeComp(default, null): CSType;
+	public var typeComp(default, null): CSCompiler_Type;
 
 	/**
 		Constructor.
@@ -77,10 +83,10 @@ class CSCompiler extends reflaxe.DirectToStringCompiler {
 		// Bypass Haxe null-safety not allowing `this` usage.
 		@:nullSafety(Off) var self = this;
 
-		classComp = new CSClass(self);
-		enumComp = new CSEnum(self);
-		exprComp = new CSExpression(self);
-		typeComp = new CSType(self);
+		classComp = new CSCompiler_Class(self);
+		enumComp = new CSCompiler_Enum(self);
+		exprComp = new CSCompiler_Expr(self);
+		typeComp = new CSCompiler_Type(self);
 	}
 
 	// ---
@@ -106,7 +112,11 @@ class CSCompiler extends reflaxe.DirectToStringCompiler {
 	function setupMainFunction() {
 		final mainExpr = getMainExpr();
 		if(mainExpr != null) {
-			final csCode = compileExpressionOrError(mainExpr);
+			final csExpr = compileExpressionOrError(mainExpr);
+
+			// TODO: Convert `csExpr` to `String` using printer
+			final csCode = "";
+
 			appendToExtraFile(BootFilename, haxeBootContent(csCode));
 		}
 	}
@@ -177,10 +187,21 @@ namespace Haxe {
 	}
 
 	/**
-		Required for adding semicolons at the end of each line. Overridden from Reflaxe.
+		Generate output.
+
+		TODO.
 	**/
-	override function formatExpressionLine(expr: String): String {
-		return expr + ";";
+	public function generateOutputIterator(): Iterator<DataAndFileInfo<StringOrBytes>> {
+		// TODO: Print all classes and enums using these vars from `GenericCompiler`:
+		// var classes: Array<CSClass>
+		// var enums: Array<CSEnum>
+
+		return {
+			hasNext: () -> false,
+			next: () -> {
+				return new DataAndFileInfo(StringOrBytes.fromString(""), @:nullSafety(Off) null, null, null);
+			}
+		};
 	}
 
 	// ---
@@ -188,14 +209,14 @@ namespace Haxe {
 	/**
 		Generate the C# output given the Haxe class information.
 	**/
-	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<String> {
+	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSClass> {
 		return classComp.compile(classType, varFields, funcFields);
 	}
 
 	/**
 		Generate the C# output given the Haxe enum information.
 	**/
-	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<String> {
+	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<CSEnum> {
 		return enumComp.compile(enumType, options);
 	}
 
@@ -206,7 +227,7 @@ namespace Haxe {
 
 		A `Position` is provided so compilation errors can be reported to it.
 	**/
-	public function compileType(type: Type, pos: Position): String {
+	public function compileType(type: Type, pos: Position): CSType {
 		final result = typeComp.compile(type, pos);
 		if(result == null) {
 			throw "Type could not be generated: " + Std.string(type);
@@ -253,7 +274,7 @@ namespace Haxe {
 	/**
 		Generate the C# output given the Haxe typed expression (`TypedExpr`).
 	**/
-	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<String> {
+	public function compileExpressionImpl(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
 		return exprComp.compile(expr, topLevel);
 	}
 
