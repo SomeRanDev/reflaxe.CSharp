@@ -15,7 +15,7 @@ enum abstract Define(String) from String to String {
 		When set, the csproj at the specified path will be used for C#
 		instead of an auto-generated csproj.
 
-		This will be ignored when the `Define` `no-csproj` is set.
+		This will be ignored when the `Define` `no_csproj` is set.
 	**/
 	var D_Csproj = "csproj";
 
@@ -32,14 +32,14 @@ enum abstract Define(String) from String to String {
 	var D_NamespaceStyle = "namespace_style";
 
 	/**
-		-D no-csproj
+		-D no_csproj
 
 		When set, a csproj file will not be generated C#.
 
 		This also applies to any csproj file specified with
 		the Define `csproj`.
 	**/
-	var D_NoCsproj = "no-csproj";
+	var D_NoCsproj = "no_csproj";
 }
 
 /**

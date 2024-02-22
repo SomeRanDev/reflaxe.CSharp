@@ -132,7 +132,7 @@ namespace Haxe {
 	/**
 		Adds a .csproj file to the output directory.
 
-		If the Define `no-csproj` is specified, then nothing is added.
+		If the Define `no_csproj` is specified, then nothing is added.
 
 		Otherwise, if the Define `csproj` specifies a path to an existing
 		.csproj file, then that is used.
