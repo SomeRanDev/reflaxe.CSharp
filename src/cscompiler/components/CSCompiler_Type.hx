@@ -1,5 +1,7 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSTypePath;
+import cscompiler.ast.CSFunction;
 #if (macro || cs_runtime)
 
 import reflaxe.helpers.Context; // same as haxe.macro.Context
@@ -11,7 +13,6 @@ import cscompiler.config.Define;
 import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
 import cscompiler.helpers.StringTools;
-import cscompiler.ast.CSClassRef;
 
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
@@ -55,18 +56,16 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case TType(_, _): {
 				compile(Context.follow(type), pos);
 			}
-			case TFun(args, ref): {
-				// TODO
-				null;
+			case TFun(args, ret): {
+				compileFunctionType(args, ret, pos);
 			}
 			case TAnonymous(anonRef): {
-				// TODO
 				// For now, we simply use `object` type. Might change later
-				"object";
+				CSObject;
 			}
 			case TDynamic(maybeType): {
-				// TODO
-				null;
+				// TODO, returning `dynamic` type for now here
+				CSDynamic;
 			}
 			case TLazy(callback): {
 				compile(callback(), pos);
@@ -76,15 +75,12 @@ class CSCompiler_Type extends CSCompiler_Base {
 				var primitiveType = checkPrimitiveType(absType, params);
 
 				if (primitiveType != null) {
-					primitiveType;
+					CSValue(
+						primitiveType, [], false
+					);
 				}
 				else if (absType.name == "Null") {
-					if (params != null && params.length > 0 && isValueType(params[0])) {
-						compile(params[0], pos) + "?";
-					}
-					else {
-						compile(params[0], pos);
-					}
+					makeNullable(compile(params[0], pos));
 				}
 				else {
 					compile(Context.followWithAbstracts(type), pos);
@@ -93,19 +89,15 @@ class CSCompiler_Type extends CSCompiler_Base {
 		}
 	}
 
-	function compileEnumType(enumType:EnumType):CSClassRef {
+	function compileEnumType(enumType:EnumType):CSTypePath {
 
-		return new CSClassRef(
-			compileEnumName(enumType, true)
-		);
+		return compileEnumName(enumType, true);
 
 	}
 
-	function compileClassType(classType:ClassType):CSClassRef {
+	function compileClassType(classType:ClassType):CSTypePath {
 
-		return new CSClassRef(
-			compileClassName(classType, true)
-		);
+		return compileClassName(classType, true);
 
 	}
 
@@ -113,6 +105,45 @@ class CSCompiler_Type extends CSCompiler_Base {
 
 		// TODO
 		return [];
+
+	}
+
+	function compileFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, ret:Type, pos:Position):CSType {
+
+		return CSFunction(
+			args.map(arg -> {
+				name: arg.name,
+				opt: arg.opt,
+				type: compile(arg.t, pos)
+			}),
+			compile(ret, pos)
+		);
+
+	}
+
+	function makeNullable(type: Null<CSType>): Null<CSType> {
+
+		return switch type {
+			case null:
+				null;
+			case CSInst(typePath, params):
+				type;
+			case CSEnum(typePath, params):
+				type;
+			case CSFunction(args, ret):
+				type;
+			case CSObject:
+				type;
+			case CSDynamic:
+				type;
+			case CSString:
+				type;
+			case CSValue(typePath, params, _):
+				// Value types need to be explicitly nullable,
+				// whereas other types are already implicitly
+				// nullable so we don't change them.
+				CSValue(typePath, params, true);
+		}
 
 	}
 
