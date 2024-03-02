@@ -36,23 +36,6 @@ enum CSType {
 	CSFunction(args: Array<CSArg>, ret: CSType);
 
 	/**
-		C# `object` type
-	**/
-	CSObject;
-
-	/**
-	 	C# `dynamic` type. See https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/reference-types#the-dynamic-type to see how it
-		is different from `object` type. (the gist of it: `dynamic` is similar to
-		Haxe's `Dynamic` type while `object` is more like Haxe's `Any` type).
-	**/
-	CSDynamic;
-
-	/**
-		A C# string type
-	**/
-	CSString;
-
-	/**
 		A C# value type (primitives like `int`, `bool`... or `struct` types) type. Optionally nullable (`int?` etc...)
 	**/
 	CSValue(typePath: CSTypePath, params: Array<CSType>, nullable: Bool);

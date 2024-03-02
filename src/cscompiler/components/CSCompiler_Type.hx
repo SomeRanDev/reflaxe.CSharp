@@ -48,10 +48,22 @@ class CSCompiler_Type extends CSCompiler_Base {
 				);
 			}
 			case TInst(clsRef, params): {
-				CSInst(
-					compileClassType(clsRef.get()),
-					compileTypeParams(params)
-				);
+				final cls = clsRef.get();
+				if (cls.hasMeta(':struct')) {
+					// When using @:struct meta, we are
+					// dealing with a C# `struct` value type
+					CSValue(
+						compileClassType(cls),
+						compileTypeParams(params),
+						false
+					);
+				}
+				else {
+					CSInst(
+						compileClassType(cls),
+						compileTypeParams(params)
+					);
+				}
 			}
 			case TType(_, _): {
 				compile(Context.follow(type), pos);
@@ -61,11 +73,11 @@ class CSCompiler_Type extends CSCompiler_Base {
 			}
 			case TAnonymous(anonRef): {
 				// For now, we simply use `object` type. Might change later
-				CSObject;
+				CSInst('object', []);
 			}
 			case TDynamic(maybeType): {
 				// TODO, returning `dynamic` type for now here
-				CSDynamic;
+				CSInst('dynamic', []);
 			}
 			case TLazy(callback): {
 				compile(callback(), pos);
@@ -131,12 +143,6 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case CSEnum(typePath, params):
 				type;
 			case CSFunction(args, ret):
-				type;
-			case CSObject:
-				type;
-			case CSDynamic:
-				type;
-			case CSString:
 				type;
 			case CSValue(typePath, params, _):
 				// Value types need to be explicitly nullable,
