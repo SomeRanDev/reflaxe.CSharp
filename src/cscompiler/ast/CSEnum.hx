@@ -2,17 +2,18 @@ package cscompiler.ast;
 
 #if (macro || cs_runtime)
 
+import haxe.macro.Type;
+
 /**
 	Represents an enum in C#.
 
 	TODO.
 **/
+@:structInit
 class CSEnum {
 	public var name(default, null): String;
 
-	public function new(name: String) {
-		this.name = name;
-	}
+	public var haxeType(default, null): Type;
 }
 
 #end

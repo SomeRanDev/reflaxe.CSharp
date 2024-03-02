@@ -7,20 +7,15 @@ package cscompiler.ast;
 
 	TODO.
 **/
+@:structInit
 class CSClass {
 	public var name(default, null): String;
 
-	var superClass: Null<CSClass>;
-	var superClassTypeParams: Null<Array<CSType>>;
+	public var superClass(default, null): Null<CSClass> = null;
 
-	public function new(name: String) {
-		this.name = name;
-	}
+	public var superClassTypeParams(default, null): Array<CSType> = [];
 
-	public function setSuperClass(superClass: CSClass, typeParams: Array<CSType>) {
-		this.superClass = superClass;
-		superClassTypeParams = typeParams;
-	}
+	public var fields(default, null): Array<CSField> = [];
 }
 
 #end

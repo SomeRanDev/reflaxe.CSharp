@@ -29,10 +29,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 		TODO.
 	**/
 	public function compile(type: Type, pos: Position): Null<CSType> {
-		// Temp fix for CSType return
-		return null;
-
-		/* return */ switch(type) {
+		return switch(type) {
 			case TMono(refType): {
 				final maybeType = refType.get();
 				if(maybeType != null) {
@@ -194,13 +191,6 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case _:
 				false;
 		}
-	}
-
-	/**
-		Append type parameters to the compiled type.
-	**/
-	function withTypeParams(name: String, params: Array<Type>, pos: Position): String {
-		return name + (params.length > 0 ? '<${params.map(p -> compile(p, pos)).join(", ")}>' : "");
 	}
 
 	/**
