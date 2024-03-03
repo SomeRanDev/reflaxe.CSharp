@@ -15,6 +15,7 @@ class CSStatement {
 		this.def = def;
 		this.haxeExpr = haxeExpr;
 	}
+
 }
 
 enum CSStatementDef {

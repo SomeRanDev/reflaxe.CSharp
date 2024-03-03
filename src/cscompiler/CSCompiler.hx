@@ -1,5 +1,6 @@
 package cscompiler;
 
+import reflaxe.optimization.ExprOptimizer;
 #if (macro || cs_runtime)
 
 import sys.io.File;
@@ -269,6 +270,14 @@ namespace Haxe {
 			}
 		}
 		return result;
+	}
+
+	public function compileClassVarExpr(expr: TypedExpr): Null<CSStatement> {
+
+		// TODO: do we need to unwrap and optimize in that case?
+		//final exprs = ExprOptimizer.optimizeAndUnwrap(expr);
+
+		return compileExpression(expr);
 	}
 
 	/**

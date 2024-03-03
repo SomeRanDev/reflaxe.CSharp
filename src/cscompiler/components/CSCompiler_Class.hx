@@ -1,5 +1,7 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSVar;
+import cscompiler.ast.CSField;
 #if (macro || cs_runtime)
 
 import haxe.macro.Type;
@@ -20,14 +22,9 @@ using reflaxe.helpers.SyntaxHelper;
 **/
 class CSCompiler_Class extends CSCompiler_Base {
 	/**
-		The list of variables compiled into C# accumulated while compiling the class.
+		The list of fields compiled into C# accumulated while compiling the class.
 	**/
-	var variables: Array<String> = [];
-
-	/**
-		The list of functions compiled into C# accumulated while compiling the class.
-	**/
-	var functions: Array<String> = [];
+	var csFields: Array<CSField> = [];
 
 	/**
 		C# name of the class currently being compiled.
@@ -43,8 +40,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 		Called at the start of a class' compilation to reset the variables.
 	**/
 	function init(classType: ClassType) {
-		variables = [];
-		functions = [];
+		csFields = [];
 
 		final className = classType.name;
 		csClassName = compiler.compileClassName(classType);
@@ -58,67 +54,39 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// Temp fix for CSType return
 		return null;
 
-		// TODO: Set the output folder for the file this will be generated for
-		// compiler.setOutputFileDir("src");
-
 		// Stores all the variables and fields to put together later.
 		init(classType);
 
-		var declaration = "";
-
-		// Compile metadata (built-in Reflaxe function)
-		final clsMeta = compiler.compileMetadata(classType.meta, MetadataTarget.Class) ?? "";
-		declaration += clsMeta;
+		// TODO convert metadata to C# attributes
+		//compiler.compileMetadata(classType.meta, MetadataTarget.Class);
 
 		// Basic declaration
-		declaration += "class " + csClassName;
 		if(classType.superClass != null) {
-			declaration += ": " + compiler.compileClassName(classType.superClass.t.get());
+			// TODO superclass
 		}
 
-		// Variables
+		// TODO when reflax will provide a field iterator, we'll use that
+		// Instead of querying varFields and funcFields
 		for(v in varFields) {
 			compileVariable(v);
 		}
-
-		// Functions
 		for(f in funcFields) {
 			compileFunction(f, classType);
 		}
 
-		// if there are no instance variables or functions,
-		// we don't need to generate a class
-		if(variables.length <= 0 && functions.length <= 0) {
-			return null;
-		}
+		// TODO namespace here or in parent AST node?
 
-		// Let's put everything together to make the C# class!
-		/* return */ {
-			final content = [];
+		return {
+			name: csClassName,
+			fields: csFields
+		};
 
-			if(variables.length > 0) {
-				content.push(variables.map(v -> v.tab()).join("\n\n"));
-			}
-
-			if(functions.length > 0) {
-				content.push(functions.map(v -> v.tab()).join("\n\n"));
-			}
-
-			var result = declaration + " {\n";
-			result += content.join("\n\n");
-			result += "\n}\n";
-
-			result = compiler.wrapNameSpace(csNameSpace, result);
-			result = compiler.cleanWhiteSpaces(result);
-
-			result;
-		}
 	}
 
 	/**
 		Compiles the class variable.
 	**/
-	function compileVariable(v: ClassVarData) {
+	function compileVariable(v: ClassVarData):CSField {
 		final field = v.field;
 
 		// Compile name
@@ -129,18 +97,23 @@ class CSCompiler_Class extends CSCompiler_Base {
 
 		// Compile expression
 		final e = field.expr();
-		final csExpr = if(e != null) {
-			compiler.compileClassVarExpr(e);
-		} else {
-			"";
-		}
+		final csExpr = compiler.compileClassVarExpr(e);
+
+		// TODO handle getters/setters
 
 		// Compile metadata
-		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		// TODO C# attributes from meta
+		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
-		// Put it all together to make C# variable
-		final decl = meta + (v.isStatic ? "static " : "") + (varType ?? "var") + " " + varName + (csExpr.length == 0 ? "" : (" = " + csExpr)) + ";";
-		variables.push(decl);
+		return {
+			name: varName,
+			access: [CSPublic], // TODO
+			kind: CSVar(
+				varType,
+				csExpr
+			)
+		}
+
 	}
 
 	/**
