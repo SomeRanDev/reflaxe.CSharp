@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSTopLevel;
 import cscompiler.ast.CSVar;
 import cscompiler.ast.CSField;
 #if (macro || cs_runtime)
@@ -50,7 +51,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
-	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSClass> {
+	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
 		// Temp fix for CSType return
 		return null;
 
@@ -74,11 +75,12 @@ class CSCompiler_Class extends CSCompiler_Base {
 			compileFunction(f, classType);
 		}
 
-		// TODO namespace here or in parent AST node?
-
 		return {
-			name: csClassName,
-			fields: csFields
+			nameSpace: csNameSpace,
+			def: CSTopLevelClass({
+				name: csClassName,
+				fields: csFields
+			})
 		};
 
 	}

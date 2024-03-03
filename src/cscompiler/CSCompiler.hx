@@ -1,5 +1,6 @@
 package cscompiler;
 
+import cscompiler.ast.CSTopLevel;
 import reflaxe.optimization.ExprOptimizer;
 #if (macro || cs_runtime)
 
@@ -41,7 +42,7 @@ import cscompiler.config.Define;
 
 	Its "impl" functions are called from Reflaxe.
 **/
-class CSCompiler extends reflaxe.GenericCompiler<CSClass, CSEnum, CSStatement> {
+class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSStatement> {
 	/**
 		The namespace used for top-level module types.
 	**/
@@ -210,14 +211,14 @@ namespace Haxe {
 	/**
 		Generate the C# output given the Haxe class information.
 	**/
-	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSClass> {
+	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
 		return classComp.compile(classType, varFields, funcFields);
 	}
 
 	/**
 		Generate the C# output given the Haxe enum information.
 	**/
-	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<CSEnum> {
+	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<CSTopLevel> {
 		return enumComp.compile(enumType, options);
 	}
 
