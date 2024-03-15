@@ -8,21 +8,22 @@ package cscompiler.ast;
 	TODO: Give each case a better description.
 **/
 enum CSConstant {
-	CSInt(i: Int, suffix: String);
+	CSInt(i: Int);
 
 	/**
 		TODO:
 		Should there be a `CSDouble`?
-		Or some better way to handle differen suffixes?
+		Or some better way to handle different suffixes?
 	**/
-	CSFloat(s: String, suffix: String);
+	CSFloat(s: String);
+	CSDouble(s: String);
 
 	CSString(s: String);
 	CSBool(b: Bool);
 
 	CSNull;
 	CSThis;
-	CSSuper;
+	CSBase;
 }
 
 #end

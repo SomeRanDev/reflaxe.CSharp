@@ -7,6 +7,7 @@ import haxe.macro.Type;
 /**
 	Represents a C# statement.
 **/
+@:structInit
 class CSStatement {
 	public var def(default, null): CSStatementDef;
 	public var haxeExpr(default, null): Null<TypedExpr>;

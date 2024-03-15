@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSConstant;
 import cscompiler.ast.CSExpr;
 #if (macro || cs_runtime)
 
@@ -39,16 +40,16 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				expression;
 
 			case CSBlock(statements):
-				// TODO transform block into a function call that returns the last haxe expression
+				null;
 
 			case CSIf(condition, ifContent, elseContent):
-				// TODO transform to ternary
+				null;
 
 			case CSWhile(condition, content, normalWhile):
-				// TODO? transform to C# expr with return value
+				null;
 
 			case CSVar(varData, expr):
-				// TODO? transform to C# expr with return value
+				null;
 
 		}
 
@@ -58,13 +59,15 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
 	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
-		// Temp fix for CSStatement return
-		return null;
-
-		var result = "";
-		switch(expr.expr) {
+		return switch(expr.expr) {
 			case TConst(constant): {
-				result = constantToCS(constant);
+				{
+					haxeExpr: expr,
+					def: CSExprStatement({
+						haxeExpr: expr,
+						def: compileConstant(constant)
+					})
+				}
 			}
 			case TLocal(v): {
 				result = compiler.compileVarName(v.name, expr);
@@ -265,15 +268,15 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	/**
 		Generate an expression given a `TConstant` (from `TypedExprDef.TConst`).
 	**/
-	function constantToCS(constant: TConstant): String {
+	function compileConstant(constant: TConstant): CSConstant {
 		return switch(constant) {
-			case TInt(i): Std.string(i);
-			case TFloat(s): s;
+			case TInt(i): CSInt(i);
+			case TFloat(s): CSDouble(s); // Haxe Float is actually a C# double
 			case TString(s): compileString(s);
-			case TBool(b): b ? "true" : "false";
-			case TNull: "null";
-			case TThis: "this";
-			case TSuper: "super";
+			case TBool(b): CSBool(b);
+			case TNull: CSNull;
+			case TThis: CSThis;
+			case TSuper: CSBase;
 		}
 	}
 
