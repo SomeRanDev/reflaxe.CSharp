@@ -8,9 +8,9 @@ class CSField {
 	public var name:String;
 
 	/**
-		The access modifiers of the field.
+		The modifiers of the field.
 	**/
-	public var access:Array<CSAccessModifier>;
+	public var modifiers:Array<CSModifier>;
 
 	/**
 		The kind of the field.

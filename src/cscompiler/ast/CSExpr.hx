@@ -8,6 +8,7 @@ import haxe.macro.Type;
 /**
 	Represents a C# expression.
 **/
+@:structInit
 class CSExpr {
 	public var def(default, null): CSExprDef;
 	public var haxeExpr(default, null): Null<TypedExpr>;

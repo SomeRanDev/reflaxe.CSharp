@@ -1,6 +1,10 @@
 package cscompiler.ast;
 
-enum CSAccessModifier {
+enum CSModifier {
+
+    CSStatic;
+
+    CSAbstract;
 
     CSPublic;
 

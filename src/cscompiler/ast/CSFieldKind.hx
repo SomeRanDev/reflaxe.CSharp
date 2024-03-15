@@ -8,7 +8,7 @@ enum CSFieldKind {
 
     CSMethod(func:CSFunction);
 
-    CSVar(type:CSType, expr:Null<CSStatement>);
+    CSVar(type:CSType, expr:Null<CSExpr>);
 
     // TODO will we need that?
     CSProp(type:CSType, get:Null<CSStatement>, set:Null<CSStatement>);

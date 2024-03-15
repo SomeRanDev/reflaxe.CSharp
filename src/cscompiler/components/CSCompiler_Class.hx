@@ -1,5 +1,9 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSStatement;
+import cscompiler.ast.CSExpr;
+import cscompiler.ast.CSFunction;
+import cscompiler.ast.CSModifier;
 import cscompiler.ast.CSTopLevel;
 import cscompiler.ast.CSVar;
 import cscompiler.ast.CSField;
@@ -88,7 +92,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 	/**
 		Compiles the class variable.
 	**/
-	function compileVariable(v: ClassVarData):CSField {
+	function compileVariable(v: ClassVarData) {
 		final field = v.field;
 
 		// Compile name
@@ -107,14 +111,20 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// TODO C# attributes from meta
 		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
-		return {
+		// TODO more exhaustive modifier conversion
+		final modifiers:Array<CSModifier> = [CSPublic];
+		if (v.isStatic) {
+			modifiers.push(CSStatic);
+		}
+
+		csFields.push({
 			name: varName,
-			access: [CSPublic], // TODO
+			modifiers: modifiers,
 			kind: CSVar(
 				varType,
 				csExpr
 			)
-		}
+		});
 
 	}
 
@@ -129,8 +139,15 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// Compile name
 		final name = isConstructor ? csClassName : compiler.compileVarName(field.name);
 
+		// TODO more exhaustive modifier conversion
+		final modifiers:Array<CSModifier> = [CSPublic];
+		if (f.isStatic) {
+			modifiers.push(CSStatic);
+		}
+
 		// Compile metadata
-		final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		// TODO
+		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
 		// If a dynamic function, we want to compile as function variable.
 		if(f.kind == MethDynamic) {
@@ -138,76 +155,43 @@ class CSCompiler_Class extends CSCompiler_Base {
 			// so we don't need to do anything special to compile it as a lambda.
 			final e = field.expr();
 			if(e != null) {
-				final callable = compiler.compileClassVarExpr(e);
-				final decl = meta + (f.isStatic ? "static " : "") + "var " + name + " = " + callable;
-				variables.push(decl);
+				csFields.push({
+					name: name,
+					modifiers: modifiers,
+					kind: CSVar(
+						compiler.compileType(field.type, field.pos),
+						compiler.compileClassVarExpr(e)
+					)
+				});
+			}
+			else {
+				// TODO Is this supposed to happen?
 			}
 		} else {
-			// Compile arguments
+
 			final arguments = f.args.map(a -> {
-				if (a.isFrontOptional())
-					compiler.compileFunctionArgument(a.type, a.name, field.pos, false, null);
-				else
-					compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr);
+				// For now we don't take advantage of C# overload.
+				// let's just make it work, then we'll see what we do about it afterwards
+				compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr);
 			});
 
 			// Compile return type
 			final ret = isConstructor ? null : compiler.compileType(f.ret, field.pos);
 
-			// Compile expression - Use `data.expr` instead of `field.expr()`
-			// since it provides the contents of the function.
-			final csExpr = {
-				if(f.expr != null) {
-					final code = compiler.compileClassFuncExpr(f.expr);
-					"{\n" + code.tab() + "\n}";
-				} else {
-					";";
-				}
-			}
+			// Compile expression
+			final statement = f.expr != null ? compiler.compileClassFuncExpr(f.expr) : null;
 
-			// Put it all together to make the C# function
-			final props = compileFunctionProperties(f, classType).join(" ");
-			final func = meta + props + " " + (!isConstructor ? ret + " " : "") + name + "(" + arguments.join(", ") + ") " + csExpr;
-			functions.push(func);
-
-			// Resolve variations
-			final variations = f.findAllArgumentVariations(true, true);
-			if(variations != null && variations.length > 1) {
-				for(v in variations) {
-					if (v.args.length < f.args.length) {
-						// Compile arguments
-						final vArguments = v.args.map(a -> compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr));
-
-						// Compile internal call arguments
-						final vCallArgs = f.args.map(a -> {
-							var def = true;
-							for(arg in v.args) {
-								if(arg.name == a.name) {
-									def = false;
-									break;
-								}
-							}
-							def && a.expr != null ? compiler.compileExpression(a.expr) : a.name;
-						});
-
-						// Compile expression
-						final csExpr = {
-							if(f.expr != null) {
-								final code = (ret != "void" ? "return " : "") + name + "(" + vCallArgs.join(", ") + ");";
-								"{\n" + code.tab() + "\n}";
-							} else {
-								";";
-							}
-						}
-
-						// Put it all together to make the C# function
-						final props = compileFunctionProperties(f, classType).join(" ");
-						final func = meta + props + " " + ret + " " + name + "(" + vArguments.join(", ") + ") " + csExpr;
-						functions.push(func);
-					}
-				}
-			}
+			csFields.push({
+				name: name,
+				modifiers: modifiers,
+				kind: CSMethod({
+					ret: ret,
+					args: arguments,
+					statement: statement
+				})
+			});
 		}
+
 	}
 
 	/**

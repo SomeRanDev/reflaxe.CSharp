@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSExpr;
 #if (macro || cs_runtime)
 
 import haxe.macro.Expr;
@@ -24,6 +25,33 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	**/
 	function _compileExpression(e: TypedExpr): String {
 		return compiler.compileExpressionOrError(e);
+	}
+
+	/**
+		Implementation of `CSCompiler.compileExpressionToCSExpr`.
+	**/
+	public function compileToCSExpr(expr: TypedExpr, topLevel: Bool): Null<CSExpr> {
+
+		return switch compile(expr, topLevel)?.def {
+			case null: null;
+
+			case CSExprStatement(expression):
+				expression;
+
+			case CSBlock(statements):
+				// TODO transform block into a function call that returns the last haxe expression
+
+			case CSIf(condition, ifContent, elseContent):
+				// TODO transform to ternary
+
+			case CSWhile(condition, content, normalWhile):
+				// TODO? transform to C# expr with return value
+
+			case CSVar(varData, expr):
+				// TODO? transform to C# expr with return value
+
+		}
+
 	}
 
 	/**

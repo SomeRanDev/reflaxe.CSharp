@@ -123,7 +123,8 @@ class CSCompiler_Type extends CSCompiler_Base {
 			args.map(arg -> {
 				name: arg.name,
 				opt: arg.opt,
-				type: compile(arg.t, pos)
+				type: compile(arg.t, pos),
+				expr: null
 			}),
 			compile(ret, pos)
 		);

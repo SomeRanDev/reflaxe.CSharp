@@ -1,5 +1,6 @@
 package cscompiler;
 
+import cscompiler.ast.CSArg;
 import cscompiler.ast.CSTopLevel;
 import reflaxe.optimization.ExprOptimizer;
 #if (macro || cs_runtime)
@@ -260,17 +261,13 @@ namespace Haxe {
 
 		Note: it's possible for an argument to be optional but not have an `expr`.
 	**/
-	public function compileFunctionArgument(t: Type, name: String, pos: Position, optional: Bool, expr: Null<TypedExpr> = null) {
-		var result = compileType(t, pos) + " " + compileVarName(name);
-		if(expr != null) {
-			result += " = " + compileExpression(expr);
-		} else {
-			// TODO: ensure type is nullable
-			if (optional) {
-				result += " = null";
-			}
-		}
-		return result;
+	public function compileFunctionArgument(t: Type, name: String, pos: Position, optional: Bool, expr: Null<TypedExpr> = null):CSArg {
+		return {
+			name: compileVarName(name),
+			type: compileType(t, pos),
+			opt: optional,
+			expr: expr != null ? compileExpressionToCSExpr(expr) : null
+		};
 	}
 
 	public function compileClassVarExpr(expr: TypedExpr): Null<CSStatement> {
@@ -279,6 +276,17 @@ namespace Haxe {
 		//final exprs = ExprOptimizer.optimizeAndUnwrap(expr);
 
 		return compileExpression(expr);
+	}
+
+	public function compileClassFuncExpr(expr: TypedExpr): Null<CSStatement> {
+		return compileExpression(expr);
+	}
+
+	/**
+		Compile an expression and ensure it is an actual C# expression (not a statement)
+	**/
+	public function compileExpressionToCSExpr(expr: TypedExpr, topLevel: Bool): Null<CSExpr> {
+		return exprComp.compileToCSExpr(expr, topLevel);
 	}
 
 	/**

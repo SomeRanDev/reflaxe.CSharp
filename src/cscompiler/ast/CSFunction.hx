@@ -5,18 +5,19 @@ package cscompiler.ast;
 /**
 	Represents a function in C#.
 **/
+@:structInit
 class CSFunction {
 
 	public var args(default, null): Array<CSArg>;
 
 	public var ret(default, null): CSType;
 
-	public var expr(default, null): Null<CSExpr> = null;
+	public var statement(default, null): Null<CSStatement> = null;
 
-	public function new(args: Array<CSArg>, ret: CSType, ?expr: CSExpr) {
+	public function new(args: Array<CSArg>, ret: CSType, ?statement: CSStatement) {
 		this.args = args;
 		this.ret = ret;
-		this.expr = expr;
+		this.statement = statement;
 	}
 
 }
