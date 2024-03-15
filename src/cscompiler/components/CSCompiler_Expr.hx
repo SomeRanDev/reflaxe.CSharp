@@ -24,16 +24,16 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	/**
 		Calls `compiler.compileExpressionOrError`.
 	**/
-	function _compileExpression(e: TypedExpr): String {
+	function _compileExpression(e: TypedExpr): CSStatement {
 		return compiler.compileExpressionOrError(e);
 	}
 
 	/**
-		Implementation of `CSCompiler.compileExpressionToCSExpr`.
+		Implementation of `CSCompiler.csStatementToExpr`.
 	**/
-	public function compileToCSExpr(expr: TypedExpr, topLevel: Bool): Null<CSExpr> {
+	public function csStatementToExpr(statement: Null<CSStatement>): Null<CSExpr> {
 
-		return switch compile(expr, topLevel)?.def {
+		return switch statement?.def {
 			case null: null;
 
 			case CSExprStatement(expression):
@@ -59,7 +59,10 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
 	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
-		return switch(expr.expr) {
+		return null;
+		var result = null;
+		/*
+		switch(expr.expr) {
 			case TConst(constant): {
 				haxeExpr: expr,
 				def: CSExprStatement({
@@ -82,7 +85,14 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				})
 			}
 			case TArray(e1, e2): {
-				result = _compileExpression(e1) + "[" + _compileExpression(e2) + "]";
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					def: CSArray(
+						csStatementToExpr(_compileExpression(e1)),
+						csStatementToExpr(_compileExpression(e2))
+					)
+				})
 			}
 			case TBinop(op, e1, e2): {
 				result = binopToCS(op, e1, e2);
@@ -259,6 +269,8 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Each line of the output is preemptively tabbed.
 	**/
 	function toIndentedScope(e: TypedExpr): String {
+		return "";
+		/*
 		var el = switch(e.expr) {
 			case TBlock(el): el;
 			case _: [e];
@@ -269,6 +281,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		} else {
 			compiler.compileExpressionsIntoLines(el).tab();
 		}
+		*/
 	}
 
 	/**
@@ -278,7 +291,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		return switch(constant) {
 			case TInt(i): CSInt(i);
 			case TFloat(s): CSDouble(s); // Haxe Float is actually a C# double
-			case TString(s): compileString(s);
+			case TString(s): CSString(compileString(s));
 			case TBool(b): CSBool(b);
 			case TNull: CSNull;
 			case TThis: CSThis;

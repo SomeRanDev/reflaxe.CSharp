@@ -1,5 +1,6 @@
 package cscompiler;
 
+import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSArg;
 import cscompiler.ast.CSTopLevel;
 import reflaxe.optimization.ExprOptimizer;
@@ -266,16 +267,16 @@ namespace Haxe {
 			name: compileVarName(name),
 			type: compileType(t, pos),
 			opt: optional,
-			expr: expr != null ? compileExpressionToCSExpr(expr) : null
+			expr: expr != null ? csStatementToExpr(compileExpression(expr)) : null
 		};
 	}
 
-	public function compileClassVarExpr(expr: TypedExpr): Null<CSStatement> {
+	public function compileClassVarExpr(expr: TypedExpr): Null<CSExpr> {
 
 		// TODO: do we need to unwrap and optimize in that case?
 		//final exprs = ExprOptimizer.optimizeAndUnwrap(expr);
 
-		return compileExpression(expr);
+		return csStatementToExpr(compileExpression(expr));
 	}
 
 	public function compileClassFuncExpr(expr: TypedExpr): Null<CSStatement> {
@@ -285,8 +286,8 @@ namespace Haxe {
 	/**
 		Compile an expression and ensure it is an actual C# expression (not a statement)
 	**/
-	public function compileExpressionToCSExpr(expr: TypedExpr, topLevel: Bool): Null<CSExpr> {
-		return exprComp.compileToCSExpr(expr, topLevel);
+	public function csStatementToExpr(statement: Null<CSStatement>): Null<CSExpr> {
+		return exprComp.csStatementToExpr(statement);
 	}
 
 	/**

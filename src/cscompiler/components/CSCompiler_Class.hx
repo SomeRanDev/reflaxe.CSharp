@@ -1,6 +1,6 @@
 package cscompiler.components;
 
-import cscompiler.ast.CSAccessModifier;
+import cscompiler.ast.CSModifier;
 import cscompiler.ast.CSStatement;
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSFunction;
