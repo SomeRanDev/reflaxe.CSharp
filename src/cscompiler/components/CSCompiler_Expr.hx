@@ -61,19 +61,25 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
 		return switch(expr.expr) {
 			case TConst(constant): {
-				{
+				haxeExpr: expr,
+				def: CSExprStatement({
 					haxeExpr: expr,
-					def: CSExprStatement({
-						haxeExpr: expr,
-						def: compileConstant(constant)
-					})
-				}
+					def: compileConstant(constant)
+				})
 			}
 			case TLocal(v): {
-				result = compiler.compileVarName(v.name, expr);
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					def: CSIdent(compiler.compileVarName(v.name, expr))
+				})
 			}
 			case TIdent(s): {
-				result = compiler.compileVarName(s, expr);
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					def: CSIdent(compiler.compileVarName(s, expr))
+				})
 			}
 			case TArray(e1, e2): {
 				result = _compileExpression(e1) + "[" + _compileExpression(e2) + "]";
