@@ -6,6 +6,10 @@ enum CSModifier {
 
     CSAbstract;
 
+    CSVirtual;
+
+    CSOverride;
+
     CSPublic;
 
     CSPrivate;

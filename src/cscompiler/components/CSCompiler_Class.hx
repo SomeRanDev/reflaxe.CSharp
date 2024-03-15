@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSAccessModifier;
 import cscompiler.ast.CSStatement;
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSFunction;
@@ -111,7 +112,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// TODO C# attributes from meta
 		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
 
-		// TODO more exhaustive modifier conversion
+		// TODO more exhaustive modifier conversion?
 		final modifiers:Array<CSModifier> = [CSPublic];
 		if (v.isStatic) {
 			modifiers.push(CSStatic);
@@ -139,11 +140,8 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// Compile name
 		final name = isConstructor ? csClassName : compiler.compileVarName(field.name);
 
-		// TODO more exhaustive modifier conversion
-		final modifiers:Array<CSModifier> = [CSPublic];
-		if (f.isStatic) {
-			modifiers.push(CSStatic);
-		}
+		// Compile modifiers
+		final modifiers = compileFunctionModifiers(f, classType);
 
 		// Compile metadata
 		// TODO
@@ -197,23 +195,23 @@ class CSCompiler_Class extends CSCompiler_Base {
 	/**
 		Returns a list of all the C# properties to be appened to a C# function.
 	**/
-	function compileFunctionProperties(f: ClassFuncData, classType: ClassType): Array<String> {
+	function compileFunctionModifiers(f: ClassFuncData, classType: ClassType): Array<CSModifier> {
 		final field = f.field;
 
-		final props = [ "public" ]; // Always public
+		final modifiers = [ CSPublic ]; // Always public
 
 		if(f.isStatic) {
-			props.push("static");
+			modifiers.push(CSStatic);
 		} else {
 			// Add virtual if @:virtual meta OR has child override
 			if(field.hasMeta(":virtual") || ClassHierarchyTracker.funcHasChildOverride(classType, field, false)) {
-				props.push("virtual");
+				modifiers.push(CSVirtual);
 			} else if(field.hasMeta(":override") || ClassHierarchyTracker.getParentOverrideChain(f).length > 0) {
-				props.push("override");
+				modifiers.push(CSOverride);
 			}
 		}
 
-		return props;
+		return modifiers;
 	}
 }
 
