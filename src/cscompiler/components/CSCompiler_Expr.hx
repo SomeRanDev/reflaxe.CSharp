@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSType;
 import cscompiler.ast.CSConstant;
 import cscompiler.ast.CSExpr;
 #if (macro || cs_runtime)
@@ -59,11 +60,15 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
 	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
+
+		final csType:Null<CSType> = expr.t != null ? compiler.compileType(expr.t, expr.pos) : null;
+
 		return switch(expr.expr) {
 			case TConst(constant): {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: CSConst(compileConstant(constant))
 				})
 			}
@@ -71,6 +76,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: CSIdent(compiler.compileVarName(v.name, expr))
 				})
 			}
@@ -78,6 +84,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: CSIdent(compiler.compileVarName(s, expr))
 				})
 			}
@@ -85,6 +92,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: CSArray(
 						csStatementToExpr(_compileExpression(e1)),
 						csStatementToExpr(_compileExpression(e2))
@@ -95,6 +103,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: CSBinop(
 						op,
 						csStatementToExpr(_compileExpression(e1)),
@@ -107,6 +116,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
+					type: csType,
 					def: switch fa {
 						case FInstance(c, params, cf):
 							CSField(
@@ -161,12 +171,14 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				// Note:
 				//     we don't have access to type params here,
 				//     so they are always empty.
+				// TODO: or can we resolve them from the expression type?
 				switch m {
 					case TClassDecl(c):
 					{
 						haxeExpr: expr,
 						def: CSExprStatement({
 							haxeExpr: expr,
+							type: csType,
 							def: CSTypeExpr(compiler.compileType(TInst(c, []), expr.pos))
 						})
 					}
@@ -174,6 +186,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						haxeExpr: expr,
 						def: CSExprStatement({
 							haxeExpr: expr,
+							type: csType,
 							def: CSTypeExpr(compiler.compileType(TEnum(e, []), expr.pos))
 						})
 					}
@@ -181,6 +194,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						haxeExpr: expr,
 						def: CSExprStatement({
 							haxeExpr: expr,
+							type: csType,
 							def: CSTypeExpr(compiler.compileType(TType(t, []), expr.pos))
 						})
 					}
@@ -188,27 +202,56 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						haxeExpr: expr,
 						def: CSExprStatement({
 							haxeExpr: expr,
+							type: csType,
 							def: CSTypeExpr(compiler.compileType(TAbstract(a, []), expr.pos))
 						})
 					}
 				}
 			}
-			/*
 			case TParenthesis(e): {
-				final csExpr = _compileExpression(e);
-				result = if(!EverythingIsExprSanitizer.isBlocklikeExpr(e)) {
-					"(" + csExpr + ")";
-				} else {
-					csExpr;
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					type: csType,
+					def: CSParenthesis(csStatementToExpr(_compileExpression(e)))
+				})
+			}
+			// We are generating the same as original C# target here
+			case TObjectDecl(fields): {
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					type: csType,
+					def: CSNew(
+						"haxe.lang.DynamicObject",
+						[],
+						[] // TODO fields
+					)
+				})
+			}
+			// We are generating the same as original C# target here too:
+			// an dedicated Array type specific to Haxe so that it can
+			// work the same as haxe arrays in general
+			case TArrayDecl(el): {
+				// TODO resolve array element type correctly. Need to test
+				// if haxe is providing correct expression type to the array decl
+				// typed expression in that situation:
+				//     var array = []; <- does haxe provide `Int` as type param on the type here
+				//     array[0] = 1;
+				{
+					haxeExpr: expr,
+					def: CSExprStatement({
+						haxeExpr: expr,
+						type: csType,
+						def: CSNew(
+							"Array",
+							[],
+							[] // TODO elements
+						)
+					})
 				}
 			}
-			case TObjectDecl(fields): {
-				// TODO: Anonymous structure expression?
-			}
-			case TArrayDecl(el): {
-				// TODO: Array expression?
-				// result = "new type[] {" + el.map(e -> _compileExpression(e)).join(", ") + "}";
-			}
+			/*
 			case TCall(e, el): {
 				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
 				final nfc = compiler.compileNativeFunctionCodeMeta(e, el);

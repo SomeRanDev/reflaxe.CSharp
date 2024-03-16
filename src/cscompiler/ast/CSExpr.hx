@@ -7,16 +7,18 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 
 /**
-	Represents a C# expression.
+	Represents a C# (typed) expression.
 **/
 @:structInit
 class CSExpr {
 	public var def(default, null): CSExprDef;
 	public var haxeExpr(default, null): Null<TypedExpr> = null;
+	public var type(default,null): Null<CSType> = null;
 
-	public function new(def: CSExprDef, haxeExpr: Null<TypedExpr> = null) {
+	public function new(def: CSExprDef, haxeExpr: Null<TypedExpr> = null, type: Null<CSType> = null) {
 		this.def = def;
 		this.haxeExpr = haxeExpr;
+		this.type = type;
 	}
 }
 
@@ -73,7 +75,7 @@ enum CSExprDef {
 	/**
 		A constructor call `new cls<typeParams>(arguments)`.
 	**/
-	CSNew(cls: CSClass, typeParams: Array<CSType>, arguments: Array<CSExpr>);
+	CSNew(cls: CSTypePath, typeParams: Array<CSType>, arguments: Array<CSExpr>);
 
 	/**
 		An unary operator `op` on `baseExpr`.
