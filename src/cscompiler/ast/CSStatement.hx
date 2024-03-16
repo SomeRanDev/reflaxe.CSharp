@@ -10,7 +10,7 @@ import haxe.macro.Type;
 @:structInit
 class CSStatement {
 	public var def(default, null): CSStatementDef;
-	public var haxeExpr(default, null): Null<TypedExpr>;
+	public var haxeExpr(default, null): Null<TypedExpr> = null;
 
 	public function new(def: CSStatementDef, haxeExpr: Null<TypedExpr> = null) {
 		this.def = def;

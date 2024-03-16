@@ -1,5 +1,6 @@
 package cscompiler.ast;
 
+import cscompiler.ast.CSTypePath;
 #if (macro || cs_runtime)
 
 import haxe.macro.Expr;
@@ -11,7 +12,7 @@ import haxe.macro.Type;
 @:structInit
 class CSExpr {
 	public var def(default, null): CSExprDef;
-	public var haxeExpr(default, null): Null<TypedExpr>;
+	public var haxeExpr(default, null): Null<TypedExpr> = null;
 
 	public function new(def: CSExprDef, haxeExpr: Null<TypedExpr> = null) {
 		this.def = def;
@@ -41,15 +42,13 @@ enum CSExprDef {
 	/**
 		Binary operator `leftExpr op rightExpr`.
 	**/
+	// TODO Binop to CSBinop (because some operators are not supported by C#)
 	CSBinop(op: Binop, leftExpr: CSExpr, rightExpr: CSExpr);
 
 	/**
 		Field access on `e` of name `fieldName`.
-
-		TODO:
-		Replace `fieldName: String` with a custom `FieldAccess` type (`fieldAccess: CSFieldAccess`)?
 	**/
-	CSField(e: CSExpr, fieldName: String);
+	CSField(e: CSExpr, fieldAccess: CSFieldAccess);
 
 	/**
 		Reference to a module type `m`.
@@ -58,7 +57,7 @@ enum CSExprDef {
 		This is assuming static-access is only possible from a class in C#?
 		Maybe this should be replaced with a `CSStaticVar(varData: CSVar, cls: CSClass)`.
 	**/
-	CSClassExpr(cls: CSClass);
+	CSClassExpr(cls: CSTypePath);
 
 	/**
 		Parentheses `(e)`.

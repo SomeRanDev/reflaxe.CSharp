@@ -104,13 +104,13 @@ class CSCompiler_Type extends CSCompiler_Base {
 
 	}
 
-	function compileClassType(classType:ClassType):CSTypePath {
+	public function compileClassType(classType:ClassType):CSTypePath {
 
 		return compileClassName(classType, true);
 
 	}
 
-	function compileTypeParams(params:Array<Type>):Array<CSType> {
+	public function compileTypeParams(params:Array<Type>):Array<CSType> {
 
 		// TODO
 		return [];

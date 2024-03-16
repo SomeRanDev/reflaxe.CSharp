@@ -67,7 +67,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
-					def: compileConstant(constant)
+					def: CSConst(compileConstant(constant))
 				})
 			}
 			case TLocal(v): {
@@ -95,11 +95,58 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				})
 			}
 			case TBinop(op, e1, e2): {
-				result = binopToCS(op, e1, e2);
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					def: CSBinop(
+						op,
+						csStatementToExpr(_compileExpression(e1)),
+						csStatementToExpr(_compileExpression(e2))
+					)
+				})
 			}
-			case TField(e, fa): {
-				result = fieldAccessToCS(e, fa);
+			case TField(e, fa):
+			{
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					def: switch fa {
+						case FInstance(c, params, cf):
+							CSField(
+								csStatementToExpr(_compileExpression(e)),
+								CSFInstance(
+									compiler.typeComp.compileClassType(c.get()),
+									compiler.typeComp.compileTypeParams(params),
+									cf.get().name
+								)
+							);
+						case FStatic(c, cf):
+							CSField(
+								csStatementToExpr(_compileExpression(e)),
+								CSFStatic(
+									compiler.typeComp.compileClassType(c.get()),
+									// C# type inference should be able to infer generic types
+									// from arguments, but it also allows the types to be explicit.
+									// We might need that in some situation where inference is not enough?
+									[],
+									cf.get().name
+								)
+							);
+						case FAnon(cf):
+							// We rely on dynamic access to read anon fields, because for now,
+							// they will be backed with `haxe.lang.DynamicObject` anyway
+							compileDynamicGetField(expr, cf.get().name);
+						case FDynamic(s):
+							compileDynamicGetField(expr, s);
+						case FClosure(c, cf):
+							CSConst(CSNull); // TODO
+						case FEnum(e, ef):
+							CSConst(CSNull); // TODO
+					}
+				})
+				//result = fieldAccessToCS(e, fa);
 			}
+			/*
 			case TTypeExpr(m): {
 				result = compiler.compileModuleType(m);
 			}
@@ -307,13 +354,35 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	}
 
 	/**
-		Generate an expression given a `Binop` and two typed expressions (from `TypedExprDef.TBinop`).
+		Generate a dynamic "getField" access
 	**/
-	function binopToCS(op: Binop, e1: TypedExpr, e2: TypedExpr): String {
-		var csExpr1 = _compileExpression(e1);
-		var csExpr2 = _compileExpression(e2);
-		final operatorStr = OperatorHelper.binopToString(op);
-		return csExpr1 + " " + operatorStr + " " + csExpr2;
+	function compileDynamicGetField(expr: TypedExpr, name: String): CSExprDef {
+		return CSCall(
+			{
+				haxeExpr: expr,
+				def: CSField(
+					{
+						haxeExpr: expr,
+						def: CSClassExpr("haxe.lang.Runtime")
+					},
+					CSFStatic(
+						"haxe.lang.Runtime",
+						[],
+						"getField"
+					)
+				)
+			},
+			[],
+			[
+				{
+					haxeExpr: expr,
+					def: CSConst(CSString(name))
+				}
+				// TODO
+				//   add an integer argument used to retrieve fields names
+				//   that are known at compile time in a faster way
+			]
+		);
 	}
 
 	/**
