@@ -158,28 +158,40 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				})
 			}
 			case TTypeExpr(m): {
-				// switch m {
-				// 	case TClassDecl(c):
-				// 	{
-				// 		haxeExpr: expr,
-				// 		def: CSExprStatement({
-				// 			haxeExpr: expr,
-				// 			def: CSTypeExpr()
-				// 		})
-				// 	}
-				// 	case TEnumDecl(e): {
-				// 		haxeExpr: expr,
-				// 		def: CSExprStatement({
-				// 			haxeExpr: expr,
-				// 			def: CSTypeExpr(compiler.typeComp.compileEnumType(e.get()))
-				// 		})
-				// 	}
-				// 	case TTypeDecl(t):
-				// 		null;
-				// 	case TAbstract(a):
-				// 		null;
-				// }
-				null;
+				// Note:
+				//     we don't have access to type params here,
+				//     so they are always empty.
+				switch m {
+					case TClassDecl(c):
+					{
+						haxeExpr: expr,
+						def: CSExprStatement({
+							haxeExpr: expr,
+							def: CSTypeExpr(compiler.compileType(TInst(c, []), expr.pos))
+						})
+					}
+					case TEnumDecl(e): {
+						haxeExpr: expr,
+						def: CSExprStatement({
+							haxeExpr: expr,
+							def: CSTypeExpr(compiler.compileType(TEnum(e, []), expr.pos))
+						})
+					}
+					case TTypeDecl(t): {
+						haxeExpr: expr,
+						def: CSExprStatement({
+							haxeExpr: expr,
+							def: CSTypeExpr(compiler.compileType(TType(t, []), expr.pos))
+						})
+					}
+					case TAbstract(a): {
+						haxeExpr: expr,
+						def: CSExprStatement({
+							haxeExpr: expr,
+							def: CSTypeExpr(compiler.compileType(TAbstract(a, []), expr.pos))
+						})
+					}
+				}
 			}
 			/*
 			case TParenthesis(e): {
