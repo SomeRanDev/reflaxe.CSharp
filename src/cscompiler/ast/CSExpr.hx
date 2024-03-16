@@ -51,13 +51,9 @@ enum CSExprDef {
 	CSField(e: CSExpr, fieldAccess: CSFieldAccess);
 
 	/**
-		Reference to a module type `m`.
-
-		TODO:
-		This is assuming static-access is only possible from a class in C#?
-		Maybe this should be replaced with a `CSStaticVar(varData: CSVar, cls: CSClass)`.
+		Reference to a C# type (class, enum...).
 	**/
-	CSClassExpr(cls: CSTypePath);
+	CSTypeExpr(type: CSType);
 
 	/**
 		Parentheses `(e)`.

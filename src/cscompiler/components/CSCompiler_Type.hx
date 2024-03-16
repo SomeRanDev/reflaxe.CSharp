@@ -39,28 +39,11 @@ class CSCompiler_Type extends CSCompiler_Base {
 				}
 			}
 			case TEnum(enumRef, params): {
-				CSInst(
-					compileEnumType(enumRef.get()),
-					compileTypeParams(params)
-				);
+				compileEnumType(enumRef.get(), params);
 			}
 			case TInst(clsRef, params): {
 				final cls = clsRef.get();
-				if (cls.hasMeta(':struct')) {
-					// When using @:struct meta, we are
-					// dealing with a C# `struct` value type
-					CSValue(
-						compileClassType(cls),
-						compileTypeParams(params),
-						false
-					);
-				}
-				else {
-					CSInst(
-						compileClassType(cls),
-						compileTypeParams(params)
-					);
-				}
+				compileClassType(cls, params);
 			}
 			case TType(_, _): {
 				compile(Context.follow(type), pos);
@@ -98,15 +81,32 @@ class CSCompiler_Type extends CSCompiler_Base {
 		}
 	}
 
-	public function compileEnumType(enumType:EnumType):CSTypePath {
+	public function compileEnumType(enumType:EnumType, params:Array<Type>):CSType {
 
-		return compileEnumName(enumType, true);
+		return CSInst(
+			compileEnumTypePath(enumType),
+			compileTypeParams(params)
+		);
 
 	}
 
-	public function compileClassType(classType:ClassType):CSTypePath {
+	public function compileClassType(classType:ClassType, params:Array<Type>):CSType {
 
-		return compileClassName(classType, true);
+		return if (classType.hasMeta(':struct')) {
+			// When using @:struct meta, we are
+			// dealing with a C# `struct` value type
+			CSValue(
+				compileClassTypePath(classType),
+				compileTypeParams(params),
+				false
+			);
+		}
+		else {
+			CSInst(
+				compileClassTypePath(classType),
+				compileTypeParams(params)
+			);
+		}
 
 	}
 
@@ -198,13 +198,21 @@ class CSCompiler_Type extends CSCompiler_Base {
 		Generate C# output for `ModuleType` used in an expression
 		(i.e. for cast or static access).
 	**/
-	public function compileModuleExpression(moduleType: ModuleType): String {
+	public function compileModuleExpression(moduleType: ModuleType): CSTypePath {
 		return switch(moduleType) {
 			case TClassDecl(clsRef):
-				compileClassName(clsRef.get(), true);
+				compileClassTypePath(clsRef.get());
 			case _:
 				moduleType.getNameOrNative();
 		}
+	}
+
+	public function compileClassTypePath(classType: ClassType): CSTypePath {
+		return compileClassName(classType, true);
+	}
+
+	public function compileEnumTypePath(enumType: EnumType): CSTypePath {
+		return compileEnumName(enumType, true);
 	}
 
 	/**

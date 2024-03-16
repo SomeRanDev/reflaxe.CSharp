@@ -1,5 +1,6 @@
 package cscompiler;
 
+import cscompiler.ast.CSTypePath;
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSArg;
 import cscompiler.ast.CSTopLevel;
@@ -243,7 +244,7 @@ namespace Haxe {
 		Generate C# output for `ModuleType` used in an expression
 		(i.e. for cast or static access).
 	**/
-	public function compileModuleType(m: ModuleType): String {
+	public function compileModuleType(m: ModuleType): CSTypePath {
 		return typeComp.compileModuleExpression(m);
 	}
 

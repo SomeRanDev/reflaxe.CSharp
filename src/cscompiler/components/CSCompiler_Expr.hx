@@ -112,7 +112,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							CSField(
 								csStatementToExpr(_compileExpression(e)),
 								CSFInstance(
-									compiler.typeComp.compileClassType(c.get()),
+									compiler.typeComp.compileClassTypePath(c.get()),
 									compiler.typeComp.compileTypeParams(params),
 									cf.get().name
 								)
@@ -121,7 +121,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							CSField(
 								csStatementToExpr(_compileExpression(e)),
 								CSFStatic(
-									compiler.typeComp.compileClassType(c.get()),
+									compiler.typeComp.compileClassTypePath(c.get()),
 									// C# type inference should be able to infer generic types
 									// from arguments, but it also allows the types to be explicit.
 									// We might need that in some situation where inference is not enough?
@@ -140,7 +140,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							CSField(
 								csStatementToExpr(_compileExpression(e)),
 								CSFInstance(
-									c?.c != null ? compiler.typeComp.compileClassType(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
+									c?.c != null ? compiler.typeComp.compileClassTypePath(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
 									c?.params != null ? compiler.typeComp.compileTypeParams(c.params) : [],
 									cf.get().name
 								)
@@ -149,7 +149,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							CSField(
 								csStatementToExpr(_compileExpression(e)),
 								CSFInstance(
-									compiler.typeComp.compileEnumType(en.get()),
+									compiler.typeComp.compileEnumTypePath(en.get()),
 									[],
 									ef.name
 								)
@@ -157,10 +157,31 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					}
 				})
 			}
-			/*
 			case TTypeExpr(m): {
-				result = compiler.compileModuleType(m);
+				// switch m {
+				// 	case TClassDecl(c):
+				// 	{
+				// 		haxeExpr: expr,
+				// 		def: CSExprStatement({
+				// 			haxeExpr: expr,
+				// 			def: CSTypeExpr()
+				// 		})
+				// 	}
+				// 	case TEnumDecl(e): {
+				// 		haxeExpr: expr,
+				// 		def: CSExprStatement({
+				// 			haxeExpr: expr,
+				// 			def: CSTypeExpr(compiler.typeComp.compileEnumType(e.get()))
+				// 		})
+				// 	}
+				// 	case TTypeDecl(t):
+				// 		null;
+				// 	case TAbstract(a):
+				// 		null;
+				// }
+				null;
 			}
+			/*
 			case TParenthesis(e): {
 				final csExpr = _compileExpression(e);
 				result = if(!EverythingIsExprSanitizer.isBlocklikeExpr(e)) {
@@ -377,7 +398,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				def: CSField(
 					{
 						haxeExpr: expr,
-						def: CSClassExpr("haxe.lang.Runtime")
+						def: CSTypeExpr(CSInst("haxe.lang.Runtime", []))
 					},
 					CSFStatic(
 						"haxe.lang.Runtime",
