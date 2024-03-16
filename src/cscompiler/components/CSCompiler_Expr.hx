@@ -59,10 +59,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Implementation of `CSCompiler.compileExpressionImpl`.
 	**/
 	public function compile(expr: TypedExpr, topLevel: Bool): Null<CSStatement> {
-		return null;
-		var result = null;
-		/*
-		switch(expr.expr) {
+		return switch(expr.expr) {
 			case TConst(constant): {
 				haxeExpr: expr,
 				def: CSExprStatement({
@@ -139,12 +136,26 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						case FDynamic(s):
 							compileDynamicGetField(expr, s);
 						case FClosure(c, cf):
-							CSConst(CSNull); // TODO
-						case FEnum(e, ef):
-							CSConst(CSNull); // TODO
+							// TODO: do we need to generate different code than FInstance?
+							CSField(
+								csStatementToExpr(_compileExpression(e)),
+								CSFInstance(
+									c?.c != null ? compiler.typeComp.compileClassType(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
+									c?.params != null ? compiler.typeComp.compileTypeParams(c.params) : [],
+									cf.get().name
+								)
+							);
+						case FEnum(en, ef):
+							CSField(
+								csStatementToExpr(_compileExpression(e)),
+								CSFInstance(
+									compiler.typeComp.compileEnumType(en.get()),
+									[],
+									ef.name
+								)
+							);
 					}
 				})
-				//result = fieldAccessToCS(e, fa);
 			}
 			/*
 			case TTypeExpr(m): {
@@ -301,8 +312,11 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				// Given an expression that is an instance of an enum,
 				// generate the C# code to extract its index.
 			}
+			*/
+			case _:
+				null;
 		}
-		/* return */ result;
+		///* return */ result;
 	}
 
 	/**

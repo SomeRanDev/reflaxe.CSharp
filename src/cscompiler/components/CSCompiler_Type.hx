@@ -98,7 +98,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 		}
 	}
 
-	function compileEnumType(enumType:EnumType):CSTypePath {
+	public function compileEnumType(enumType:EnumType):CSTypePath {
 
 		return compileEnumName(enumType, true);
 
