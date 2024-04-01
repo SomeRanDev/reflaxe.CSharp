@@ -330,8 +330,9 @@ namespace Haxe {
 	}
 
 	/**
-		Remove blank white space at the end of each line,
-		and trim empty lines.
+		Get a hash code for the given name. If the name is new,
+		add an entry to `hashToNameTable` so that it can be used
+		for field lookup in generated code.
 	**/
 	public function nameToHash(name: String): Int {
 
