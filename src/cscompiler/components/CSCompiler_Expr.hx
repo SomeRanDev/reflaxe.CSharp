@@ -286,10 +286,17 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					)
 				})
 			}
-			/*
 			case TUnop(op, postFix, e): {
-				result = unopToCS(op, e, postFix);
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					type: csType,
+					def: CSUnop(
+						op, postFix, csStatementToExpr(_compileExpression(e))
+					)
+				})
 			}
+			/*
 			case TFunction(tfunc): {
 				// TODO: Lambda?
 			}
