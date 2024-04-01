@@ -230,14 +230,15 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				})
 			}
 			// We are generating the same as original C# target here too:
-			// an dedicated Array type specific to Haxe so that it can
+			// a dedicated Array type specific to Haxe so that it can
 			// work the same as haxe arrays in general
 			case TArrayDecl(el): {
-				// TODO resolve array element type correctly. Need to test
-				// if haxe is providing correct expression type to the array decl
-				// typed expression in that situation:
-				//     var array = []; <- does haxe provide `Int` as type param on the type here
-				//     array[0] = 1;
+				final arrayParams = switch csType {
+					case CSInst(_, p):
+						p;
+					case _:
+						[];
+				};
 				{
 					haxeExpr: expr,
 					def: CSExprStatement({
@@ -245,7 +246,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						type: csType,
 						def: CSNew(
 							"Array",
-							[],
+							arrayParams,
 							[] // TODO elements
 						)
 					})
