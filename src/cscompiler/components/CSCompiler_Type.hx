@@ -136,11 +136,13 @@ class CSCompiler_Type extends CSCompiler_Base {
 		return switch type {
 			case null:
 				null;
-			case CSInst(typePath, params):
+			case CSInst(_, _):
 				type;
-			case CSEnum(typePath, params):
+			case CSArray(_, _):
 				type;
-			case CSFunction(args, ret):
+			case CSEnum(_, _):
+				type;
+			case CSFunction(_, _):
 				type;
 			case CSValue(typePath, params, _):
 				// Value types need to be explicitly nullable,
