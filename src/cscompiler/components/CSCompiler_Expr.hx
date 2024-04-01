@@ -256,7 +256,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				}
 			}
 			case TCall(e, el):
-			// TODO: do we need to generate something different if using @:nativeFunctionCode here?
+			// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
 			{
 				haxeExpr: expr,
 				def: CSExprStatement({
@@ -272,18 +272,21 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					)
 				})
 			}
-			/*
-			case TNew(classTypeRef, _, el): {
-				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
-				final nfc = compiler.compileNativeFunctionCodeMeta(expr, el);
-				result = if(nfc != null) {
-					nfc;
-				} else {
-					final args = el.map(e -> _compileExpression(e)).join(", ");
-					final className = compiler.compileClassName(classTypeRef.get());
-					"new " + className + "(" + args + ")";
-				}
+			case TNew(classTypeRef, params, el):
+			// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
+			{
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					type: csType,
+					def: CSNew(
+						compiler.typeComp.compileClassTypePath(classTypeRef.get()),
+						params.map(p -> compiler.compileType(p, expr.pos)),
+						el.map(e -> csStatementToExpr(_compileExpression(e)))
+					)
+				})
 			}
+			/*
 			case TUnop(op, postFix, e): {
 				result = unopToCS(op, e, postFix);
 			}
