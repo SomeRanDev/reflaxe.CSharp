@@ -225,7 +225,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					def: CSNew(
 						"haxe.lang.DynamicObject",
 						[],
-						[] // TODO fields
+						compileObjectDeclArgs(fields)
 					)
 				})
 			}
@@ -474,6 +474,38 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				//   that are known at compile time in a faster way
 			]
 		);
+	}
+
+	/**
+		Generate arguments given to `new haxe.lang.DynamicObject()`.
+		Instead of transpiling to string keys, we encode as int hashes.
+	**/
+	function compileObjectDeclArgs(fields:Array<{name:String, expr:TypedExpr}>):Array<CSExpr> {
+
+		var hashExprs:Array<CSExpr> = [];
+		var valueExprs:Array<CSExpr> = [];
+
+		for (field in fields) {
+			final hash = compiler.nameToHash(field.name);
+
+			hashExprs.push({
+				type: CSInst('int', []),
+				def: CSConst(CSInt(hash))
+			});
+
+			valueExprs.push(
+				csStatementToExpr(_compileExpression(field.expr))
+			);
+		}
+
+		return [{
+			type: CSInst('int[]', []),
+			def: CSArrayDecl(hashExprs)
+		}, {
+			type: CSInst('object[]', []),
+			def: CSArrayDecl(valueExprs)
+		}];
+
 	}
 
 	/**
