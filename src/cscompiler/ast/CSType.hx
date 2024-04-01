@@ -29,6 +29,11 @@ enum CSType {
 	CSEnum(typePath: CSTypePath, params: Array<CSType>);
 
 	/**
+	 	Represent a native C# array type like someType[] or someType<T>[]
+	**/
+	CSArray(typePath: CSTypePath, params: Array<CSType>);
+
+	/**
 		Function type, that may be translated into
 		an `Action<T1,T2,...>` or `Func<T1,T2,...>`
 		when used as an object type.

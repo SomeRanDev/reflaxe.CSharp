@@ -247,7 +247,10 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						def: CSNew(
 							"Array",
 							arrayParams,
-							[] // TODO elements
+							compileArrayDeclArgs(
+								el,
+								arrayParams.length > 0 ? arrayParams[0] : null
+							)
 						)
 					})
 				}
@@ -499,11 +502,39 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		}
 
 		return [{
-			type: CSInst('int[]', []),
+			type: CSArray('int', []),
 			def: CSArrayDecl(hashExprs)
 		}, {
-			type: CSInst('object[]', []),
+			type: CSArray('object', []),
 			def: CSArrayDecl(valueExprs)
+		}];
+
+	}
+
+	/**
+		Generate arguments given to `new Array<T>()`.
+	**/
+	function compileArrayDeclArgs(elements:Array<TypedExpr>, ?csElementType:Null<CSType>):Array<CSExpr> {
+
+		final arrayType:CSType = switch csElementType {
+
+			// TODO: we might want to use `object[]` in some cases
+			// even if we know the more specialized type?
+			case CSInst(typePath, params): CSArray(typePath, params);
+
+			case _: CSArray('object', []);
+		}
+
+		var elementExprs:Array<CSExpr> = [];
+		for (element in elements) {
+			elementExprs.push(
+				csStatementToExpr(_compileExpression(element))
+			);
+		}
+
+		return [{
+			type: arrayType,
+			def: CSArrayDecl(elementExprs)
 		}];
 
 	}
