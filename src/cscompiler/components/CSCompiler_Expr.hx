@@ -255,17 +255,24 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					})
 				}
 			}
-			/*
-			case TCall(e, el): {
-				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
-				final nfc = compiler.compileNativeFunctionCodeMeta(e, el);
-				result = if(nfc != null) {
-					nfc;
-				} else {
-					final arguments = el.map(e -> _compileExpression(e)).join(", ");
-					_compileExpression(e) + "(" + arguments + ")";
-				}
+			case TCall(e, el):
+			// TODO: do we need to generate something different if using @:nativeFunctionCode here?
+			{
+				haxeExpr: expr,
+				def: CSExprStatement({
+					haxeExpr: expr,
+					type: csType,
+					def: CSCall(
+						csStatementToExpr(_compileExpression(e)),
+
+						// TODO: do we need to explicitly add type params on generic C# method calls?
+						[],
+
+						el.map(e -> csStatementToExpr(_compileExpression(e)))
+					)
+				})
 			}
+			/*
 			case TNew(classTypeRef, _, el): {
 				// Check for @:nativeFunctionCode (built-in Reflaxe feature)
 				final nfc = compiler.compileNativeFunctionCodeMeta(expr, el);
