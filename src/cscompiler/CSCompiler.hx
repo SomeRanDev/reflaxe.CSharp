@@ -72,6 +72,11 @@ class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSState
 	public var typeComp(default, null): CSCompiler_Type;
 
 	/**
+		Keep the inverted mapping of `nameToHashTable` to handle potential collisions
+	**/
+	public var hashToNameTable(default, null): Map<Int,String> = new Map();
+
+	/**
 		Constructor.
 	**/
 	public function new() {
@@ -323,6 +328,31 @@ namespace Haxe {
 		}
 		return lines.join("\n");
 	}
+
+	/**
+		Remove blank white space at the end of each line,
+		and trim empty lines.
+	**/
+	public function nameToHash(name: String): Int {
+
+        var h:Int = 0;
+        for (i in 0...name.length) {
+            h = 223 * h + name.charCodeAt(i);
+        }
+        h %= 0x1FFFFF7B;
+
+		while (hashToNameTable.exists(h) && hashToNameTable.get(h) != name) {
+			h++;
+		}
+
+		if (!hashToNameTable.exists(h)) {
+			hashToNameTable.set(h, name);
+		}
+
+		return h;
+
+	}
+
 }
 
 #end
