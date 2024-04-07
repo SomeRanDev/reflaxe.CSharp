@@ -10,6 +10,6 @@ typedef CSArg = {
 
     public var opt(default, null):Bool;
 
-    public var ?expr(default, null):Null<CSExpr>;
+    public var ?value(default, null):Null<CSExpr>;
 
 }

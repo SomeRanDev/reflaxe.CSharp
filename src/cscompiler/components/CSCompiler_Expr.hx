@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSArg;
 import cscompiler.ast.CSType;
 import cscompiler.ast.CSConstant;
 import cscompiler.ast.CSExpr;
@@ -25,8 +26,15 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	/**
 		Calls `compiler.compileExpressionOrError`.
 	**/
-	function _compileExpression(e: TypedExpr): CSStatement {
+	public function compileCSStatement(e: TypedExpr): CSStatement {
 		return compiler.compileExpressionOrError(e);
+	}
+
+	/**
+		Calls `compileCSStatement` then converts that to CSExpr (if applicable)
+	**/
+	public function compileCSExpr(e: TypedExpr): Null<CSExpr> {
+		return csStatementToExpr(compileCSStatement(e));
 	}
 
 	/**
@@ -94,8 +102,8 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					haxeExpr: expr,
 					type: csType,
 					def: CSArray(
-						csStatementToExpr(_compileExpression(e1)),
-						csStatementToExpr(_compileExpression(e2))
+						compileCSExpr(e1),
+						compileCSExpr(e2)
 					)
 				})
 			}
@@ -106,8 +114,8 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					type: csType,
 					def: CSBinop(
 						op,
-						csStatementToExpr(_compileExpression(e1)),
-						csStatementToExpr(_compileExpression(e2))
+						compileCSExpr(e1),
+						compileCSExpr(e2)
 					)
 				})
 			}
@@ -120,7 +128,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					def: switch fa {
 						case FInstance(c, params, cf):
 							CSField(
-								csStatementToExpr(_compileExpression(e)),
+								compileCSExpr(e),
 								CSFInstance(
 									compiler.typeComp.compileClassTypePath(c.get()),
 									compiler.typeComp.compileTypeParams(params),
@@ -129,7 +137,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							);
 						case FStatic(c, cf):
 							CSField(
-								csStatementToExpr(_compileExpression(e)),
+								compileCSExpr(e),
 								CSFStatic(
 									compiler.typeComp.compileClassTypePath(c.get()),
 									// C# type inference should be able to infer generic types
@@ -148,7 +156,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						case FClosure(c, cf):
 							// TODO: do we need to generate different code than FInstance?
 							CSField(
-								csStatementToExpr(_compileExpression(e)),
+								compileCSExpr(e),
 								CSFInstance(
 									c?.c != null ? compiler.typeComp.compileClassTypePath(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
 									c?.params != null ? compiler.typeComp.compileTypeParams(c.params) : [],
@@ -157,7 +165,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							);
 						case FEnum(en, ef):
 							CSField(
-								csStatementToExpr(_compileExpression(e)),
+								compileCSExpr(e),
 								CSFInstance(
 									compiler.typeComp.compileEnumTypePath(en.get()),
 									[],
@@ -213,7 +221,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				def: CSExprStatement({
 					haxeExpr: expr,
 					type: csType,
-					def: CSParenthesis(csStatementToExpr(_compileExpression(e)))
+					def: CSParenthesis(compileCSExpr(e))
 				})
 			}
 			// We are generating the same as original C# target here
@@ -263,12 +271,12 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					haxeExpr: expr,
 					type: csType,
 					def: CSCall(
-						csStatementToExpr(_compileExpression(e)),
+						compileCSExpr(e),
 
 						// TODO: do we need to explicitly add type params on generic C# method calls?
 						[],
 
-						el.map(e -> csStatementToExpr(_compileExpression(e)))
+						el.map(e -> compileCSExpr(e))
 					)
 				})
 			}
@@ -282,7 +290,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					def: CSNew(
 						compiler.typeComp.compileClassTypePath(classTypeRef.get()),
 						params.map(p -> compiler.compileType(p, expr.pos)),
-						el.map(e -> csStatementToExpr(_compileExpression(e)))
+						el.map(e -> compileCSExpr(e))
 					)
 				})
 			}
@@ -305,7 +313,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 
 				// Not guaranteed to have expression, be careful!
 				if(maybeExpr != null) {
-					final e = _compileExpression(maybeExpr);
+					final e = compileCSStatement(maybeExpr);
 					result += " = " + e;
 				}
 			}
@@ -318,7 +326,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case TFor(tvar, iterExpr, blockExpr): {
 				// TODO: When is TFor even provided (usually converted to TWhile)?
 				// Will C# foreach work?
-				result = "foreach(var " + tvar.name + " in " + _compileExpression(iterExpr) + ") {\n";
+				result = "foreach(var " + tvar.name + " in " + compileCSStatement(iterExpr) + ") {\n";
 				result += toIndentedScope(blockExpr);
 				result += "\n}";
 			}
@@ -326,7 +334,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				result = compileIf(condExpr, ifContentExpr, elseExpr);
 			}
 			case TWhile(condExpr, blockExpr, normalWhile): {
-				final csExpr = _compileExpression(condExpr);
+				final csExpr = compileCSStatement(condExpr);
 				if(normalWhile) {
 					result = "while(" + csExpr + ") {\n";
 					result += toIndentedScope(blockExpr);
@@ -340,11 +348,11 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case TSwitch(switchedExpr, cases, edef): {
 				// Haxe only generates `TSwitch` for switch statements only using numbers (I think?).
 				// So this should be safe to translate directly to C# switch.
-				result = "switch(" + _compileExpression(switchedExpr) + ") {\n";
+				result = "switch(" + compileCSStatement(switchedExpr) + ") {\n";
 				for(c in cases) {
 					result += "\n";
 					for(v in c.values) {
-						result += "\tcase" + _compileExpression(v) + ":\n";
+						result += "\tcase" + compileCSStatement(v) + ":\n";
 					}
 					result += toIndentedScope(c.expr).tab();
 					result += "\t\tbreak;";
@@ -371,7 +379,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case TReturn(maybeExpr): {
 				// Not guaranteed to have expression, be careful!
 				if(maybeExpr != null) {
-					result = "return " + _compileExpression(maybeExpr);
+					result = "return " + compileCSStatement(maybeExpr);
 				} else {
 					result = "return";
 				}
@@ -384,10 +392,10 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			}
 			case TThrow(subExpr): {
 				// Can C# throw anything?
-				result = "throw " + _compileExpression(subExpr) + ";";
+				result = "throw " + compileCSStatement(subExpr) + ";";
 			}
 			case TCast(subExpr, maybeModuleType): {
-				result = _compileExpression(subExpr);
+				result = compileCSStatement(subExpr);
 
 				// Not guaranteed to have module, be careful!
 				if(maybeModuleType != null) {
@@ -397,7 +405,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case TMeta(metadataEntry, subExpr): {
 				// TODO: Handle expression meta?
 				// Only works if `-D retain-untyped-meta` is enabled.
-				result = _compileExpression(subExpr);
+				result = compileCSStatement(subExpr);
 			}
 			case TEnumParameter(subExpr, enumField, index): {
 				// TODO
@@ -514,7 +522,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			});
 
 			valueExprs.push(
-				csStatementToExpr(_compileExpression(field.expr))
+				compileCSExpr(field.expr)
 			);
 		}
 
@@ -545,7 +553,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		var elementExprs:Array<CSExpr> = [];
 		for (element in elements) {
 			elementExprs.push(
-				csStatementToExpr(_compileExpression(element))
+				compileCSExpr(element)
 			);
 		}
 
@@ -560,7 +568,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		Generate an expression given a `Unop` and typed expression (from `TypedExprDef.TUnop`).
 	**/
 	function unopToCS(op: Unop, e: TypedExpr, isPostfix: Bool): String {
-		final csExpr = _compileExpression(e);
+		final csExpr = compileCSStatement(e);
 		final operatorStr = OperatorHelper.unopToString(op);
 		return isPostfix ? (csExpr + operatorStr) : (operatorStr + csExpr);
 	}
@@ -598,7 +606,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				case _:
 			}
 
-			final csExpr = _compileExpression(e);
+			final csExpr = compileCSStatement(e);
 
 			// Check if a special field access that requires the compiled expression.
 			switch(fa) {
@@ -614,7 +622,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 	}
 
 	function compileIf(condExpr: TypedExpr, ifContentExpr: TypedExpr, elseExpr: Null<TypedExpr>) {
-		var result = "if(" + _compileExpression(condExpr.unwrapParenthesis()) + ") {\n";
+		var result = "if(" + compileCSStatement(condExpr.unwrapParenthesis()) + ") {\n";
 		result += toIndentedScope(ifContentExpr);
 		if(elseExpr != null) {
 			switch(elseExpr.expr) {
@@ -632,5 +640,27 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		}
 		return result;
 	}
+
+	function compileFuncArgs(args:Array<{v:TVar, value:Null<TypedExpr>}>, pos:Position):Array<CSArg> {
+
+		// For now, we are opting to the most robust solution even if
+		// that might not be the most efficient one in some situations.
+		// Let's first make it work, then after that we can think about improving it.
+
+		var result:Array<CSArg> = [];
+
+		for (arg in args) {
+			result.push({
+				name: compiler.compileVarName(arg.v.name),
+				type: compiler.compileType(arg.v.t, pos),
+				opt: arg.value != null,
+				value: compileCSExpr(arg.value)
+			});
+		}
+
+		return result;
+
+	}
+
 }
 #end

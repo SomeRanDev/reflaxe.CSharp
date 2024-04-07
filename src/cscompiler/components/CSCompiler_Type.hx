@@ -124,7 +124,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 				name: arg.name,
 				opt: arg.opt,
 				type: compile(arg.t, pos),
-				expr: null
+				value: null
 			}),
 			compile(ret, pos)
 		);
