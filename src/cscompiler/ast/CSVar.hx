@@ -5,6 +5,7 @@ package cscompiler.ast;
 /**
 	Represents a variable in C#.
 **/
+@:structInit
 class CSVar {
 	/**
 		TODO:

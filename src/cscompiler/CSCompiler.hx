@@ -273,7 +273,7 @@ namespace Haxe {
 			name: compileVarName(name),
 			type: compileType(t, pos),
 			opt: optional,
-			value: expr != null ? compileCSExpr(expr) : null
+			value: expr != null ? compileToCSExpr(expr) : null
 		};
 	}
 
@@ -282,7 +282,7 @@ namespace Haxe {
 		// TODO: do we need to unwrap and optimize in that case?
 		//final exprs = ExprOptimizer.optimizeAndUnwrap(expr);
 
-		return compileCSExpr(expr);
+		return compileToCSExpr(expr);
 	}
 
 	public function compileClassFuncExpr(expr: TypedExpr): Null<CSStatement> {
@@ -292,8 +292,8 @@ namespace Haxe {
 	/**
 		Compile an expression and ensure it is an actual C# expression (not a statement)
 	**/
-	public function compileCSExpr(expr: TypedExpr): Null<CSExpr> {
-		return exprComp.compileCSExpr(expr);
+	public function compileToCSExpr(expr: TypedExpr): Null<CSExpr> {
+		return exprComp.compileToCSExpr(expr);
 	}
 
 	/**

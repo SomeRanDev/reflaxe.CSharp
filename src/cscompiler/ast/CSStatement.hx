@@ -32,6 +32,21 @@ enum CSStatementDef {
 	CSWhile(condition: CSExpr, content: Array<CSStatement>, normalWhile: Bool);
 
 	/**
+	 	Used for TFor, although in practice it's not really happening as all
+		TFor are converted to while
+	**/
+	CSForeach(varData: CSVar, iterExpr: CSExpr, content: Array<CSStatement>);
+
+	/**
+	 	C# Switch
+	**/
+	CSSwitch(subject: CSExpr, cases:Array<{value: CSExpr, content: Null<Array<CSStatement>>}>, edef: Null<Array<CSStatement>>);
+
+	CSBreak;
+
+	CSContinue;
+
+	/**
 		A variable declaration `var varData` or `var varData = expr`.
 	**/
 	CSVar(varData: CSVar, expr: Null<CSExpr>);
