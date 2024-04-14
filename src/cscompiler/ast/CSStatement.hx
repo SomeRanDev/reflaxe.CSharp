@@ -1,5 +1,6 @@
 package cscompiler.ast;
 
+import cscompiler.ast.CSExpr;
 #if (macro || cs_runtime)
 
 import haxe.macro.Type;
@@ -42,9 +43,23 @@ enum CSStatementDef {
 	**/
 	CSSwitch(subject: CSExpr, cases:Array<{value: CSExpr, content: Null<Array<CSStatement>>}>, edef: Null<Array<CSStatement>>);
 
+	/**
+	 	C# Try/Catch
+	**/
+	CSTry(content: Array<CSStatement>, catches: Array<{name: String, type: CSType, content: Array<CSStatement>}>);
+
 	CSBreak;
 
 	CSContinue;
+
+	CSReturn(maybeExpr: Null<CSExpr>);
+
+	CSThrow(expr: CSExpr);
+
+	/**
+		A C# cast. Either by using `(T) V` (direct casting) or `V as T` (reference type/nullable cast)
+	**/
+	CSCast(expr: CSExpr, type: CSType, directCasting:Bool);
 
 	/**
 		A variable declaration `var varData` or `var varData = expr`.

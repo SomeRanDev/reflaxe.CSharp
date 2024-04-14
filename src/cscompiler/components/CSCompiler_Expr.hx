@@ -1,5 +1,6 @@
 package cscompiler.components;
 
+import cscompiler.ast.CSVar;
 import cscompiler.ast.CSArg;
 import cscompiler.ast.CSType;
 import cscompiler.ast.CSConstant;
@@ -8,6 +9,7 @@ import cscompiler.ast.CSExpr;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
+import haxe.macro.TypeTools;
 
 import reflaxe.compiler.EverythingIsExprSanitizer;
 import reflaxe.helpers.OperatorHelper;
@@ -76,10 +78,22 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case CSSwitch(subject, cases, edef):
 				null;
 
+			case CSCast(expr, type, directCasting):
+				null;
+
 			case CSBreak:
 				null;
 
 			case CSContinue:
+				null;
+
+			case CSReturn(maybeExpr):
+				null;
+
+			case CSThrow(expr):
+				null;
+
+			case CSTry(content, catches):
 				null;
 
 			case CSVar(varData, expr):
@@ -390,64 +404,48 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					edef != null ? compileToCSStatementArray(edef) : null
 				)
 			}
-			/*
-			case TSwitch(switchedExpr, cases, edef): {
-				// Haxe only generates `TSwitch` for switch statements only using numbers (I think?).
-				// So this should be safe to translate directly to C# switch.
-				result = "switch(" + compileToCSStatement(switchedExpr) + ") {\n";
-				for(c in cases) {
-					result += "\n";
-					for(v in c.values) {
-						result += "\tcase" + compileToCSStatement(v) + ":\n";
-					}
-					result += toIndentedScope(c.expr).tab();
-					result += "\t\tbreak;";
-				}
-				if(edef != null) {
-					result += "\n";
-					result += "\tdefault:\n";
-					result += toIndentedScope(edef).tab();
-					result += "\t\tbreak;";
-				}
-			}
 			case TTry(e, catches): {
-				result += "try {\n";
-				result += toIndentedScope(e);
-				result += "\n}";
-				// TODO: Might need to guarantee Haxe exception type?
-				// Use PlatformConfig
-				for(c in catches) {
-					result += "catch(" + compiler.compileFunctionArgument(c.v.t, c.v.name, expr.pos, false, null) + ") {\n";
-					result += toIndentedScope(c.expr);
-					result += "\n}";
-				}
+				haxeExpr: expr,
+				def: CSTry(
+					compileToCSStatementArray(e),
+					compileTryCatches(catches)
+				)
 			}
 			case TReturn(maybeExpr): {
-				// Not guaranteed to have expression, be careful!
-				if(maybeExpr != null) {
-					result = "return " + compileToCSStatement(maybeExpr);
-				} else {
-					result = "return";
-				}
+				haxeExpr: expr,
+				def: CSReturn(
+					maybeExpr != null ? compileToCSExpr(maybeExpr) : null
+				)
 			}
 			case TBreak: {
-				result = "break";
+				haxeExpr: expr,
+				def: CSBreak
 			}
 			case TContinue: {
-				result = "continue";
+				haxeExpr: expr,
+				def: CSContinue
 			}
 			case TThrow(subExpr): {
-				// Can C# throw anything?
-				result = "throw " + compileToCSStatement(subExpr) + ";";
+				haxeExpr: expr,
+				def: CSThrow(compileToCSExpr(subExpr))
 			}
 			case TCast(subExpr, maybeModuleType): {
-				result = compileToCSStatement(subExpr);
-
-				// Not guaranteed to have module, be careful!
-				if(maybeModuleType != null) {
-					result = "(" + result + " as " + compiler.compileModuleType(maybeModuleType) + ")";
+				if (maybeModuleType == null) {
+					compileToCSStatement(subExpr);
+				}
+				else {
+					final type = TypeTools.fromModuleType(maybeModuleType);
+					{
+						haxeExpr: expr,
+						def: CSCast(
+							compileToCSExpr(subExpr),
+							compiler.compileType(type, expr.pos),
+							compiler.typeComp.isValueType(type)
+						)
+					}
 				}
 			}
+			/*
 			case TMeta(metadataEntry, subExpr): {
 				// TODO: Handle expression meta?
 				// Only works if `-D retain-untyped-meta` is enabled.
@@ -708,7 +706,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 
 	}
 
-	function compileSwitchCases(cases:Array<{values:Array<TypedExpr>, expr:TypedExpr}>): Array<{value: CSExpr, content: Null<Array<CSStatement>>}> {
+	function compileSwitchCases(cases: Array<{values:Array<TypedExpr>, expr:TypedExpr}>): Array<{value: CSExpr, content: Null<Array<CSStatement>>}> {
 
 		var result = [];
 
@@ -727,6 +725,23 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					content: i == numValues - 1 ? csContent : null
 				});
 			}
+		}
+
+		return result;
+
+	}
+
+	function compileTryCatches(catches: Array<{v: TVar, expr: TypedExpr}>): Array<{name: String, type: CSType, content: Array<CSStatement>}> {
+
+		var result = [];
+
+		for (aCatch in catches) {
+
+			result.push({
+				name: compiler.compileVarName(aCatch.v.name),
+				type: compiler.compileType(aCatch.v.t, aCatch.expr.pos),
+				content: compileToCSStatementArray(aCatch.expr)
+			});
 		}
 
 		return result;

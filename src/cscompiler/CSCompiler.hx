@@ -250,7 +250,7 @@ namespace Haxe {
 		(i.e. for cast or static access).
 	**/
 	public function compileModuleType(m: ModuleType): CSTypePath {
-		return typeComp.compileModuleExpression(m);
+		return typeComp.compileModuleType(m);
 	}
 
 	/**

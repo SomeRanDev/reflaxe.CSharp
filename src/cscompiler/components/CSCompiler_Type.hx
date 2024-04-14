@@ -177,7 +177,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 		Returns `true` if the given type is a **value type**.
 		A **value type** is either a primitive type or a (C#) struct type.
 	**/
-	function isValueType(type: Type): Bool {
+	public function isValueType(type: Type): Bool {
 		return switch type {
 			case TInst(t, params):
 				// TODO classes with @:structAccess
@@ -200,7 +200,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 		Generate C# output for `ModuleType` used in an expression
 		(i.e. for cast or static access).
 	**/
-	public function compileModuleExpression(moduleType: ModuleType): CSTypePath {
+	public function compileModuleType(moduleType: ModuleType): CSTypePath {
 		return switch(moduleType) {
 			case TClassDecl(clsRef):
 				compileClassTypePath(clsRef.get());
