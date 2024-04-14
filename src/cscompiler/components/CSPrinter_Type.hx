@@ -25,6 +25,7 @@ class CSPrinter_Type extends CSPrinter_Base {
             case CSArray(typePath, params):
                 printTypePath(typePath);
                 printTypeParams(params);
+                write('[]');
 
             case CSFunction(args, ret):
                 // TODO
