@@ -1,5 +1,7 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
+
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSStatement;
 import cscompiler.ast.CSFunction;
@@ -14,3 +16,5 @@ enum CSFieldKind {
     CSProp(type:CSType, get:Null<CSStatement>, set:Null<CSStatement>);
 
 }
+
+#end

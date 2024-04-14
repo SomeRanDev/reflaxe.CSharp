@@ -1,14 +1,13 @@
 package cscompiler.components;
 
-import cscompiler.ast.CSTypePath;
-import cscompiler.ast.CSFunction;
 #if (macro || cs_runtime)
 
 import reflaxe.helpers.Context; // same as haxe.macro.Context
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
-import cscompiler.ast.CSType;
+import cscompiler.ast.*;
+
 import cscompiler.config.Define;
 import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;

@@ -1,19 +1,12 @@
 package cscompiler.components;
 
-import cscompiler.ast.CSModifier;
-import cscompiler.ast.CSStatement;
-import cscompiler.ast.CSExpr;
-import cscompiler.ast.CSFunction;
-import cscompiler.ast.CSModifier;
-import cscompiler.ast.CSTopLevel;
-import cscompiler.ast.CSVar;
-import cscompiler.ast.CSField;
 #if (macro || cs_runtime)
 
 import haxe.macro.Type;
 import haxe.display.Display.MetadataTarget;
 
-import cscompiler.ast.CSClass;
+import cscompiler.ast.*;
+
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
@@ -198,7 +191,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 	function compileFunctionModifiers(f: ClassFuncData, classType: ClassType): Array<CSModifier> {
 		final field = f.field;
 
-		final modifiers = [ CSPublic ]; // Always public
+		final modifiers:Array<CSModifier> = [ CSPublic ]; // Always public
 
 		if(f.isStatic) {
 			modifiers.push(CSStatic);

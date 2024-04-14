@@ -1,10 +1,5 @@
 package cscompiler;
 
-import cscompiler.ast.CSTypePath;
-import cscompiler.ast.CSExpr;
-import cscompiler.ast.CSArg;
-import cscompiler.ast.CSTopLevel;
-import reflaxe.optimization.ExprOptimizer;
 #if (macro || cs_runtime)
 
 import sys.io.File;
@@ -23,6 +18,7 @@ import reflaxe.data.EnumOptionData;
 import reflaxe.helpers.Context;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
+import reflaxe.optimization.ExprOptimizer;
 
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.ModuleTypeHelper;
@@ -33,6 +29,10 @@ using reflaxe.helpers.TypeHelper;
 
 // ---
 
+import cscompiler.ast.CSTypePath;
+import cscompiler.ast.CSExpr;
+import cscompiler.ast.CSArg;
+import cscompiler.ast.CSTopLevel;
 import cscompiler.ast.CSClass;
 import cscompiler.ast.CSEnum;
 import cscompiler.ast.CSStatement;

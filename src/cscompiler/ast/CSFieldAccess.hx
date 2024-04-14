@@ -1,5 +1,7 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
+
 import cscompiler.ast.CSTypePath;
 
 enum CSFieldAccess {
@@ -17,3 +19,5 @@ enum CSFieldAccess {
 	CSFStatic(c:CSTypePath, params:Array<CSType>, cf:String);
 
 }
+
+#end

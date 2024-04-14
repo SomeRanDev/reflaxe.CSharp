@@ -1,5 +1,6 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
 import cscompiler.ast.CSExpr;
 
 typedef CSArg = {
@@ -13,3 +14,4 @@ typedef CSArg = {
     public var ?value(default, null):Null<CSExpr>;
 
 }
+#end

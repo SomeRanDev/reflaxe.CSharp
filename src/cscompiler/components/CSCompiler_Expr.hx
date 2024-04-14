@@ -1,11 +1,8 @@
 package cscompiler.components;
 
-import cscompiler.ast.CSVar;
-import cscompiler.ast.CSArg;
-import cscompiler.ast.CSType;
-import cscompiler.ast.CSConstant;
-import cscompiler.ast.CSExpr;
 #if (macro || cs_runtime)
+
+import cscompiler.ast.*;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
@@ -445,27 +442,24 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					}
 				}
 			}
-			/*
 			case TMeta(metadataEntry, subExpr): {
 				// TODO: Handle expression meta?
 				// Only works if `-D retain-untyped-meta` is enabled.
-				result = compileToCSStatement(subExpr);
+				compileToCSStatement(subExpr);
 			}
 			case TEnumParameter(subExpr, enumField, index): {
 				// TODO
 				// Given an expression that is an instance of an enum,
 				// generate the C# code to extract a value from this enum.
+				null;
 			}
 			case TEnumIndex(subExpr): {
 				// TODO
 				// Given an expression that is an instance of an enum,
 				// generate the C# code to extract its index.
-			}
-			*/
-			case _:
 				null;
+			}
 		}
-		///* return */ result;
 	}
 
 	/**

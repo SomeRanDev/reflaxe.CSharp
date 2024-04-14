@@ -13,7 +13,7 @@ package cscompiler.ast;
 class CSTopLevel {
 	public var def(default, null): CSTopLevelDef;
 
-	public var nameSpace(default, null): String;
+	public var nameSpace(default, null): Null<String>;
 
 	public function new(def: CSTopLevelDef, nameSpace: String) {
 		this.def = def;

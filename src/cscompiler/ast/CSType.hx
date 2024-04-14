@@ -1,7 +1,8 @@
 package cscompiler.ast;
 
-import haxe.macro.Type.Ref;
 #if (macro || cs_runtime)
+
+import haxe.macro.Type.Ref;
 
 /**
 	Represents a C# type.

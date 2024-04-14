@@ -1,5 +1,7 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
+
 @:structInit
 class CSField {
 	/**
@@ -17,3 +19,5 @@ class CSField {
 	**/
 	public var kind:CSFieldKind;
 }
+
+#end

@@ -1,5 +1,7 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
+
 enum CSModifier {
 
     CSStatic;
@@ -19,3 +21,5 @@ enum CSModifier {
     CSInternal;
 
 }
+
+#end

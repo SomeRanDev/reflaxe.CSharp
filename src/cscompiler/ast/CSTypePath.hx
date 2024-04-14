@@ -1,5 +1,7 @@
 package cscompiler.ast;
 
+#if (macro || cs_runtime)
+
 /**
     A reference to a C# type described by the given type path.
 
@@ -8,3 +10,5 @@ package cscompiler.ast;
     an actual type can be retrieved from its type path (at printing stage).
 **/
 typedef CSTypePath = String;
+
+#end

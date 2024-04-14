@@ -11,6 +11,8 @@ package cscompiler.ast;
 class CSClass {
 	public var name(default, null): String;
 
+	public var typeParams(default, null): Array<CSType> = [];
+
 	public var superClass(default, null): Null<CSTypePath> = null;
 
 	public var superClassTypeParams(default, null): Array<CSType> = [];
