@@ -1,11 +1,11 @@
 namespace haxe.root {
-	class Base {
-		public virtual void func() {
+  class Base {
+    public virtual void func() {
 
-		}
+    }
+    public void func2() {
 
-		public void func2() {
+    }
 
-		}
-	}
+  }
 }

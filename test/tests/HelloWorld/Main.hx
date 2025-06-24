@@ -5,6 +5,7 @@ class Base {
 	public function func2() {}
 }
 
+@:keep
 class Child extends Base {
 	public override function func() {}
 }
