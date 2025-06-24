@@ -29,3 +29,20 @@ Add a folder with a unique name to `test/tests`.
 Copy the `Main.hx`, `Test.hxml`, and `.gitignore` from `test/tests/HelloWorld` to get started.
 
 Once you've completed your test, run `haxe Test.hxml test=YourTestFolderName update-intended` to generate the `intended` folder containing the desired output for your test. Run without `update-intended` to compare the outputs.
+
+## Style Guide
+
+### Variable Names
+
+Variable names should be:
+* Long and descriptive!
+* Please no one character variable names (outside of `for(i in ...)`)!
+* If a variable is of type `Null<T>`, its name must start with "maybe"!
+
+### Imports
+
+There should be an empty line between `import` and `using` imports with `using`s coming second. Within each second, the imports should be in alphabetical order and additionally separated into sections ordered as followed:
+* Imports from modules within this project.
+* Haxe standard library imports.
+* Reflaxe imports.
+* Third-party library imports.
