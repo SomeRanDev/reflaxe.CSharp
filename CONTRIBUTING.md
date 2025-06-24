@@ -30,7 +30,26 @@ Copy the `Main.hx`, `Test.hxml`, and `.gitignore` from `test/tests/HelloWorld` t
 
 Once you've completed your test, run `haxe Test.hxml test=YourTestFolderName update-intended` to generate the `intended` folder containing the desired output for your test. Run without `update-intended` to compare the outputs.
 
-## Style Guide
+# Before Contributing
+
+Always do the following before opening your PR request:
+
+1) Check for null-safety issues.
+```
+haxe DevEnv.hxml
+```
+
+2) Run the tests!
+```
+haxe Test.hxml
+```
+
+3) Run the formatter!
+```
+haxelib run formatter -s src
+```
+
+# Style Guide
 
 ### Variable Names
 
