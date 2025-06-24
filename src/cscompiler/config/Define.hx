@@ -1,7 +1,6 @@
 package cscompiler.config;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import reflaxe.helpers.Context; // same as haxe.macro.Context
 
 /**
@@ -18,7 +17,7 @@ enum abstract Define(String) from String to String {
 		This will be ignored when `-D no_csproj` is defined.
 	**/
 	var D_Csproj = "csproj";
-
+	
 	/**
 		`-D namespace_style=[default|pascal]`
 
@@ -30,7 +29,7 @@ enum abstract Define(String) from String to String {
 		to pascal-case C# namespaces.
 	**/
 	var D_NamespaceStyle = "namespace_style";
-
+	
 	/**
 		`-D no_csproj`
 
@@ -39,9 +38,7 @@ enum abstract Define(String) from String to String {
 		`-D csproj` does nothing when this is defined.
 	**/
 	var D_NoCsproj = "no_csproj";
-}
-
-/**
+} /**
 	A class containing static extension functions for `Define`.
 
 	Should be used like this:
@@ -51,6 +48,7 @@ enum abstract Define(String) from String to String {
 	}
 	```
 **/
+
 class DefineTools {
 	/**
 		Checks if the define is defined using `Context.defined`.
@@ -58,7 +56,7 @@ class DefineTools {
 	public static function isDefined(self: Define): Bool {
 		return Context.defined(self);
 	}
-
+	
 	/**
 		Returns the value of the define using `Context.definedValue`.
 		If it isn't defined, `null` is returned.
@@ -66,7 +64,7 @@ class DefineTools {
 	public static function getValueOrNull(self: Define): Null<String> {
 		return Context.definedValue(self);
 	}
-
+	
 	/**
 		Returns the value of the define using `Context.definedValue`.
 		Throws an error if the define does not exist.
@@ -79,5 +77,4 @@ class DefineTools {
 		return result;
 	}
 }
-
 #end

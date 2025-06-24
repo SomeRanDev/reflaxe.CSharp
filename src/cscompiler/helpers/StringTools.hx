@@ -1,7 +1,6 @@
 package cscompiler.helpers;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 /**
 	`String` helper methods used with Reflaxe/C#.
 **/
@@ -14,21 +13,17 @@ class StringTools {
 		if(snakeCase.length < 2) {
 			return snakeCase.toUpperCase();
 		}
-
+		
 		// Remove underscores and uppercase subsequent character.
-		final result = ~/[\._]\w/g.map(
-			snakeCase,
-			(each) -> {
-				final part = each.matched(0);
-				final separator = part.charAt(0);
-				final character = part.charAt(1).toUpperCase();
-				return '${separator == "." ? separator : ""}${character}';
-			}
-		);
-
+		final result = ~/[\._]\w/g.map(snakeCase, (each) -> {
+			final part = each.matched(0);
+			final separator = part.charAt(0);
+			final character = part.charAt(1).toUpperCase();
+			return '${separator == "." ? separator : ""}${character}';
+		});
+		
 		// Make the first character uppercase.
 		return '${result.charAt(0).toUpperCase()}${result.substr(1)}';
 	}
 }
-
 #end

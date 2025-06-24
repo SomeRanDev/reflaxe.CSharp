@@ -1,25 +1,21 @@
 package cscompiler.ast;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 enum CSModifier {
-
-    CSStatic;
-
-    CSAbstract;
-
-    CSVirtual;
-
-    CSOverride;
-
-    CSPublic;
-
-    CSPrivate;
-
-    CSProtected;
-
-    CSInternal;
-
+	CSStatic;
+	
+	CSAbstract;
+	
+	CSVirtual;
+	
+	CSOverride;
+	
+	CSPublic;
+	
+	CSPrivate;
+	
+	CSProtected;
+	
+	CSInternal;
 }
-
 #end

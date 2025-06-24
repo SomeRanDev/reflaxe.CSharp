@@ -1,7 +1,6 @@
 package cscompiler.components;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import haxe.macro.Type;
 
 import reflaxe.BaseCompiler;

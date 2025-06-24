@@ -1,7 +1,6 @@
 package cscompiler.ast;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 /**
 	Represents a top-level entry in a C# source file.
 
@@ -12,18 +11,16 @@ package cscompiler.ast;
 @:structInit
 class CSTopLevel {
 	public var def(default, null): CSTopLevelDef;
-
+	
 	public var nameSpace(default, null): Null<String>;
-
+	
 	public function new(def: CSTopLevelDef, nameSpace: String) {
 		this.def = def;
 		this.nameSpace = nameSpace;
 	}
-}
+} enum CSTopLevelDef {
 
-enum CSTopLevelDef {
 	CSTopLevelClass(c: CSClass);
 	CSTopLevelEnum(e: CSEnum);
 }
-
 #end

@@ -1,20 +1,16 @@
 package cscompiler.ast;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSStatement;
 import cscompiler.ast.CSFunction;
 
 enum CSFieldKind {
-
-    CSMethod(func:CSFunction);
-
-    CSVar(type:CSType, expr:Null<CSExpr>);
-
-    // TODO will we need that?
-    CSProp(type:CSType, get:Null<CSStatement>, set:Null<CSStatement>);
-
+	CSMethod(func: CSFunction);
+	
+	CSVar(type: CSType, expr: Null<CSExpr>);
+	
+	// TODO will we need that?
+	CSProp(type: CSType, get: Null<CSStatement>, set: Null<CSStatement>);
 }
-
 #end

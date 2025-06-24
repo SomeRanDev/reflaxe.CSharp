@@ -1,13 +1,12 @@
 package cscompiler.components;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import reflaxe.helpers.Context; // same as haxe.macro.Context
+
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
 import cscompiler.ast.*;
-
 import cscompiler.config.Define;
 import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
@@ -21,7 +20,6 @@ using reflaxe.helpers.NameMetaHelper;
 	types into C#.
 **/
 class CSCompiler_Type extends CSCompiler_Base {
-
 	/**
 		Generates the C# type code given the Haxe `haxe.macro.Type`.
 
@@ -30,108 +28,81 @@ class CSCompiler_Type extends CSCompiler_Base {
 	public function compile(type: Type, pos: Position): Null<CSType> {
 		return switch(type) {
 			case TMono(refType): {
-				final maybeType = refType.get();
-				if(maybeType != null) {
-					compile(maybeType, pos);
-				} else {
-					null;
+					final maybeType = refType.get();
+					if(maybeType != null) {
+						compile(maybeType, pos);
+					} else {
+						null;
+					}
 				}
-			}
 			case TEnum(enumRef, params): {
-				compileEnumType(enumRef.get(), params);
-			}
+					compileEnumType(enumRef.get(), params);
+				}
 			case TInst(clsRef, params): {
-				final cls = clsRef.get();
-				compileClassType(cls, params);
-			}
+					final cls = clsRef.get();
+					compileClassType(cls, params);
+				}
 			case TType(_, _): {
-				compile(Context.follow(type), pos);
-			}
+					compile(Context.follow(type), pos);
+				}
 			case TFun(args, ret): {
-				compileFunctionType(args, ret, pos);
-			}
+					compileFunctionType(args, ret, pos);
+				}
 			case TAnonymous(anonRef): {
-				// For now, we simply use `object` type. Might change later
-				CSInst('object', []);
-			}
+					// For now, we simply use `object` type. Might change later
+					CSInst('object', []);
+				}
 			case TDynamic(maybeType): {
-				// TODO, returning `dynamic` type for now here
-				CSInst('dynamic', []);
-			}
+					// TODO, returning `dynamic` type for now here
+					CSInst('dynamic', []);
+				}
 			case TLazy(callback): {
-				compile(callback(), pos);
-			}
+					compile(callback(), pos);
+				}
 			case TAbstract(absRef, params): {
-				var absType = absRef.get();
-				var primitiveType = checkPrimitiveType(absType, params);
-
-				if (primitiveType != null) {
-					CSValue(
-						primitiveType, [], false
-					);
+					var absType = absRef.get();
+					var primitiveType = checkPrimitiveType(absType, params);
+					
+					if(primitiveType != null) {
+						CSValue(primitiveType, [], false);
+					} else if(absType.name == "Null") {
+						makeNullable(compile(params[0], pos));
+					} else {
+						compile(Context.followWithAbstracts(type), pos);
+					}
 				}
-				else if (absType.name == "Null") {
-					makeNullable(compile(params[0], pos));
-				}
-				else {
-					compile(Context.followWithAbstracts(type), pos);
-				}
-			}
 		}
 	}
-
-	public function compileEnumType(enumType:EnumType, params:Array<Type>):CSType {
-
-		return CSInst(
-			compileEnumTypePath(enumType),
-			compileTypeParams(params)
-		);
-
+	
+	public function compileEnumType(enumType: EnumType, params: Array<Type>): CSType {
+		return CSInst(compileEnumTypePath(enumType), compileTypeParams(params));
 	}
-
-	public function compileClassType(classType:ClassType, params:Array<Type>):CSType {
-
-		return if (classType.hasMeta(':struct')) {
+	
+	public function compileClassType(classType: ClassType, params: Array<Type>): CSType {
+		return if(classType.hasMeta(':struct')) {
 			// When using @:struct meta, we are
 			// dealing with a C# `struct` value type
-			CSValue(
-				compileClassTypePath(classType),
-				compileTypeParams(params),
-				false
-			);
+			CSValue(compileClassTypePath(classType), compileTypeParams(params), false);
+		} else {
+			CSInst(compileClassTypePath(classType), compileTypeParams(params));
 		}
-		else {
-			CSInst(
-				compileClassTypePath(classType),
-				compileTypeParams(params)
-			);
-		}
-
 	}
-
-	public function compileTypeParams(params:Array<Type>):Array<CSType> {
-
+	
+	public function compileTypeParams(params: Array<Type>): Array<CSType> {
 		// TODO
 		return [];
-
 	}
-
-	function compileFunctionType(args:Array<{name:String, opt:Bool, t:Type}>, ret:Type, pos:Position):CSType {
-
-		return CSFunction(
-			args.map(arg -> {
-				name: arg.name,
-				opt: arg.opt,
-				type: compile(arg.t, pos),
-				value: null
-			}),
-			compile(ret, pos)
-		);
-
+	
+	function compileFunctionType(args: Array<{name: String, opt: Bool, t: Type}>, ret: Type, pos: Position): CSType {
+		return CSFunction(args.map(arg -> {
+			name: arg.name,
+			opt: arg.opt,
+			type: compile(arg.t, pos),
+			value: null
+		}), compile(ret, pos));
 	}
-
+	
 	function makeNullable(type: Null<CSType>): Null<CSType> {
-
 		return switch type {
 			case null:
 				null;
@@ -149,9 +120,8 @@ class CSCompiler_Type extends CSCompiler_Base {
 				// nullable so we don't change them.
 				CSValue(typePath, params, true);
 		}
-
 	}
-
+	
 	/**
 		If the provided `TAbstract` info should generate a primitive type,
 		this function compiles and returns the type name.
@@ -171,7 +141,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case _: null;
 		}
 	}
-
+	
 	/**
 		Returns `true` if the given type is a **value type**.
 		A **value type** is either a primitive type or a (C#) struct type.
@@ -184,17 +154,16 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case TAbstract(absRef, params):
 				final absType = absRef.get();
 				final primitiveType = checkPrimitiveType(absType, params);
-				if (primitiveType != null) {
+				if(primitiveType != null) {
 					true;
-				}
-				else {
+				} else {
 					isValueType(Context.followWithAbstracts(type));
 				}
 			case _:
 				false;
 		}
 	}
-
+	
 	/**
 		Generate C# output for `ModuleType` used in an expression
 		(i.e. for cast or static access).
@@ -207,15 +176,15 @@ class CSCompiler_Type extends CSCompiler_Base {
 				moduleType.getNameOrNative();
 		}
 	}
-
+	
 	public function compileClassTypePath(classType: ClassType): CSTypePath {
 		return compileClassName(classType, true);
 	}
-
+	
 	public function compileEnumTypePath(enumType: EnumType): CSTypePath {
 		return compileEnumName(enumType, true);
 	}
-
+	
 	/**
 		Get the name of the `ClassType` as it should appear in
 		the C# output.
@@ -227,7 +196,7 @@ class CSCompiler_Type extends CSCompiler_Base {
 			classType.getNameOrNative();
 		}
 	}
-
+	
 	/**
 		Get the name of the `EnumType` as it should appear in
 		the C# output.
@@ -239,44 +208,44 @@ class CSCompiler_Type extends CSCompiler_Base {
 			enumType.getNameOrNative();
 		}
 	}
-
+	
 	/**
 		Get a C# namespace for the given package
 	**/
-	public function getNameSpace(baseType: BaseType):String {
+	public function getNameSpace(baseType: BaseType): String {
 		final pack = getPackWithoutModule(baseType);
-		if (pack.length == 0) {
+		if(pack.length == 0) {
 			return CSCompiler.DEFAULT_ROOT_NAMESPACE;
 		}
-
+		
 		final result = pack.join(".");
 		return switch(NamespaceStyle_fromString(D_NamespaceStyle.getValueOrNull() ?? "")) {
 			case Pascal: {
-				StringTools.toPascalCase(result);
-			}
+					StringTools.toPascalCase(result);
+				}
 			case Default: {
-				result;
-			}
+					result;
+				}
 		}
 	}
-
+	
 	/**
 		Get copy of `pack` from a `BaseType` with the module name
 		removed.
 	**/
 	public function getPackWithoutModule(baseType: BaseType): Array<String> {
 		final pack = baseType.pack.copy();
-
+		
 		if(pack.length > 0) {
-			inline function shouldExcludeLastPackItem(item: String):Bool {
+			inline function shouldExcludeLastPackItem(item: String): Bool {
 				return item.toLowerCase() != item;
 			}
-
-			while (pack.length > 0 && shouldExcludeLastPackItem(pack[pack.length - 1])) {
+			
+			while(pack.length > 0 && shouldExcludeLastPackItem(pack[pack.length - 1])) {
 				pack.pop();
 			}
 		}
-
+		
 		return pack;
 	}
 }

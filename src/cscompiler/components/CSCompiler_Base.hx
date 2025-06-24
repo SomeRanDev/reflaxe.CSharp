@@ -1,7 +1,6 @@
 package cscompiler.components;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import cscompiler.CSCompiler;
 
 /**
@@ -12,10 +11,9 @@ import cscompiler.CSCompiler;
 **/
 class CSCompiler_Base {
 	var compiler: CSCompiler;
-
+	
 	public function new(compiler: CSCompiler) {
 		this.compiler = compiler;
 	}
 }
-
 #end

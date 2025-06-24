@@ -1,7 +1,6 @@
 package cscompiler.components;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import haxe.macro.Type;
 import haxe.display.Display.MetadataTarget;
 
@@ -24,69 +23,69 @@ class CSCompiler_Class extends CSCompiler_Base {
 		The list of fields compiled into C# accumulated while compiling the class.
 	**/
 	var csFields: Array<CSField> = [];
-
+	
 	/**
 		C# name of the class currently being compiled.
 	**/
 	var csClassName: String = "";
-
+	
 	/**
 		C# namespace of the class  currently being compiled.
 	**/
 	var csNameSpace: String = "";
-
+	
 	/**
 		Called at the start of a class' compilation to reset the variables.
 	**/
 	function init(classType: ClassType) {
 		csFields = [];
-
+		
 		final className = classType.name;
 		csClassName = compiler.compileClassName(classType);
 		csNameSpace = compiler.typeComp.getNameSpace(classType);
 	}
-
+	
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
 	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
 		// Temp fix for CSType return
 		return null;
-
+		
 		// Stores all the variables and fields to put together later.
 		init(classType);
-
+		
 		// TODO convert metadata to C# attributes
-		//compiler.compileMetadata(classType.meta, MetadataTarget.Class);
-
+		// compiler.compileMetadata(classType.meta, MetadataTarget.Class);
+		
 		// Basic declaration
 		if(classType.superClass != null) {
 			compiler.addModuleTypeForCompilation(TClassDecl(classType.superClass.t));
-			for(typeParam in classType.superClass.params) {
+			for (typeParam in classType.superClass.params) {
 				compiler.addTypeForCompilation(typeParam);
 			}
-
+			
 			// TODO superclass
 		}
-
-		for(inter in classType.interfaces) {
+		
+		for (inter in classType.interfaces) {
 			compiler.addModuleTypeForCompilation(TClassDecl(inter.t));
-			for(typeParam in inter.params) {
+			for (typeParam in inter.params) {
 				compiler.addTypeForCompilation(typeParam);
 			}
-
+			
 			// TODO interface
 		}
-
+		
 		// TODO when reflaxe will provide a field iterator, we'll use that
 		// Instead of querying varFields and funcFields
-		for(v in varFields) {
+		for (v in varFields) {
 			compileVariable(v);
 		}
-		for(f in funcFields) {
+		for (f in funcFields) {
 			compileFunction(f, classType);
 		}
-
+		
 		return {
 			nameSpace: csNameSpace,
 			def: CSTopLevelClass({
@@ -94,66 +93,61 @@ class CSCompiler_Class extends CSCompiler_Base {
 				fields: csFields
 			})
 		};
-
 	}
-
+	
 	/**
 		Compiles the class variable.
 	**/
 	function compileVariable(v: ClassVarData) {
 		final field = v.field;
-
+		
 		// Compile name
 		final varName = compiler.compileVarName(field.name, null, field);
-
+		
 		// Compile type
 		final varType = compiler.compileType(field.type, field.pos);
-
+		
 		// Compile expression
 		final e = field.expr();
 		final csExpr = compiler.compileClassVarExpr(e);
-
+		
 		// TODO handle getters/setters
-
+		
 		// Compile metadata
 		// TODO C# attributes from meta
-		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
-
+		// final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		
 		// TODO more exhaustive modifier conversion?
-		final modifiers:Array<CSModifier> = [CSPublic];
-		if (v.isStatic) {
+		final modifiers: Array<CSModifier> = [CSPublic];
+		if(v.isStatic) {
 			modifiers.push(CSStatic);
 		}
-
+		
 		csFields.push({
 			name: varName,
 			modifiers: modifiers,
-			kind: CSVar(
-				varType,
-				csExpr
-			)
+			kind: CSVar(varType, csExpr)
 		});
-
 	}
-
+	
 	/**
 		Compiles the class function.
 	**/
 	function compileFunction(f: ClassFuncData, classType: ClassType) {
 		final field = f.field;
-
+		
 		final isConstructor = (field.name == "new");
-
+		
 		// Compile name
 		final name = isConstructor ? csClassName : compiler.compileVarName(field.name);
-
+		
 		// Compile modifiers
 		final modifiers = compileFunctionModifiers(f, classType);
-
+		
 		// Compile metadata
 		// TODO
-		//final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
-
+		// final meta = compiler.compileMetadata(field.meta, MetadataTarget.ClassField) ?? "";
+		
 		// If a dynamic function, we want to compile as function variable.
 		if(f.kind == MethDynamic) {
 			// `field.expr()` gives an expression of as TypedExprDef.TFunction,
@@ -163,29 +157,24 @@ class CSCompiler_Class extends CSCompiler_Base {
 				csFields.push({
 					name: name,
 					modifiers: modifiers,
-					kind: CSVar(
-						compiler.compileType(field.type, field.pos),
-						compiler.compileClassVarExpr(e)
-					)
+					kind: CSVar(compiler.compileType(field.type, field.pos), compiler.compileClassVarExpr(e))
 				});
-			}
-			else {
+			} else {
 				// TODO Is this supposed to happen?
 			}
 		} else {
-
 			final arguments = f.args.map(a -> {
 				// For now we don't take advantage of C# overload.
 				// let's just make it work, then we'll see what we do about it afterwards
 				compiler.compileFunctionArgument(a.type, a.getName(), field.pos, a.opt, a.expr);
 			});
-
+			
 			// Compile return type
 			final ret = isConstructor ? null : compiler.compileType(f.ret, field.pos);
-
+			
 			// Compile expression
 			final statement = f.expr != null ? compiler.compileClassFuncExpr(f.expr) : null;
-
+			
 			csFields.push({
 				name: name,
 				modifiers: modifiers,
@@ -196,17 +185,16 @@ class CSCompiler_Class extends CSCompiler_Base {
 				})
 			});
 		}
-
 	}
-
+	
 	/**
 		Returns a list of all the C# properties to be appened to a C# function.
 	**/
 	function compileFunctionModifiers(f: ClassFuncData, classType: ClassType): Array<CSModifier> {
 		final field = f.field;
-
-		final modifiers:Array<CSModifier> = [ CSPublic ]; // Always public
-
+		
+		final modifiers: Array<CSModifier> = [CSPublic]; // Always public
+		
 		if(f.isStatic) {
 			modifiers.push(CSStatic);
 		} else {
@@ -217,9 +205,8 @@ class CSCompiler_Class extends CSCompiler_Base {
 				modifiers.push(CSOverride);
 			}
 		}
-
+		
 		return modifiers;
 	}
 }
-
 #end

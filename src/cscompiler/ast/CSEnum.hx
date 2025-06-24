@@ -1,7 +1,6 @@
 package cscompiler.ast;
 
-#if (macro || cs_runtime)
-
+#if(macro || cs_runtime)
 import haxe.macro.Type;
 
 /**
@@ -12,8 +11,7 @@ import haxe.macro.Type;
 @:structInit
 class CSEnum {
 	public var name(default, null): String;
-
+	
 	public var haxeType(default, null): Type;
 }
-
 #end
