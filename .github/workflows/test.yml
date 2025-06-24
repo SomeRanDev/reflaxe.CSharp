@@ -7,9 +7,9 @@ on:
       - development
 
 jobs:
-  build_ubuntu:
-    runs-on: ubuntu-20.04
-    name: Test on Ubuntu (GCC)
+  build_windows:
+    runs-on: windows-latest
+    name: Test on Windows
     steps:
       - uses: krdlab/setup-haxe@v1
         with:
@@ -17,12 +17,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Setup GCC
-        uses: egor-tensin/setup-gcc@v1
-        with:
-          version: latest
-          platform: x64
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
