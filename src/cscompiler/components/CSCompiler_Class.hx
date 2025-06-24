@@ -61,10 +61,24 @@ class CSCompiler_Class extends CSCompiler_Base {
 
 		// Basic declaration
 		if(classType.superClass != null) {
+			compiler.addModuleTypeForCompilation(TClassDecl(classType.superClass.t));
+			for(typeParam in classType.superClass.params) {
+				compiler.addTypeForCompilation(typeParam);
+			}
+
 			// TODO superclass
 		}
 
-		// TODO when reflax will provide a field iterator, we'll use that
+		for(inter in classType.interfaces) {
+			compiler.addModuleTypeForCompilation(TClassDecl(inter.t));
+			for(typeParam in inter.params) {
+				compiler.addTypeForCompilation(typeParam);
+			}
+
+			// TODO interface
+		}
+
+		// TODO when reflaxe will provide a field iterator, we'll use that
 		// Instead of querying varFields and funcFields
 		for(v in varFields) {
 			compileVariable(v);

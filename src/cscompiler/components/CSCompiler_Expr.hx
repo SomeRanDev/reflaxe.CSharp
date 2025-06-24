@@ -154,68 +154,81 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					)
 				})
 			}
-			case TField(e, fa):
-			{
-				haxeExpr: expr,
-				def: CSExprStatement({
-					haxeExpr: expr,
-					type: csType,
-					def: switch fa {
-						case FInstance(c, params, cf):
-							CSField(
-								compileToCSExpr(e),
-								CSFInstance(
-									compiler.typeComp.compileClassTypePath(c.get()),
-									compiler.typeComp.compileTypeParams(params),
-									cf.get().name
-								)
-							);
-						case FStatic(c, cf):
-							CSField(
-								compileToCSExpr(e),
-								CSFStatic(
-									compiler.typeComp.compileClassTypePath(c.get()),
-									// C# type inference should be able to infer generic types
-									// from arguments, but it also allows the types to be explicit.
-									// We might need that in some situation where inference is not enough?
-									[],
-									cf.get().name
-								)
-							);
-						case FAnon(cf):
-							// We rely on dynamic access to read anon fields, because for now,
-							// they will be backed with `haxe.lang.DynamicObject` anyway
-							compileDynamicGetField(expr, cf.get().name);
-						case FDynamic(s):
-							compileDynamicGetField(expr, s);
-						case FClosure(c, cf):
-							// TODO: do we need to generate different code than FInstance?
-							CSField(
-								compileToCSExpr(e),
-								CSFInstance(
-									c?.c != null ? compiler.typeComp.compileClassTypePath(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
-									c?.params != null ? compiler.typeComp.compileTypeParams(c.params) : [],
-									cf.get().name
-								)
-							);
-						case FEnum(en, ef):
-							CSField(
-								compileToCSExpr(e),
-								CSFInstance(
-									compiler.typeComp.compileEnumTypePath(en.get()),
-									[],
-									ef.name
-								)
-							);
+			case TField(e, fa): {
+				switch fa {
+					case FInstance(classTypeRef, _, _) | FStatic(classTypeRef, _): {
+						compiler.addModuleTypeForCompilation(TClassDecl(classTypeRef));
 					}
-				})
+					case FEnum(enumRef, _): {
+						compiler.addModuleTypeForCompilation(TEnumDecl(enumRef));
+					}
+					case _:
+				}
+				{
+					haxeExpr: expr,
+					def: CSExprStatement({
+						haxeExpr: expr,
+						type: csType,
+						def: switch fa {
+							case FInstance(c, params, cf):
+								CSField(
+									compileToCSExpr(e),
+									CSFInstance(
+										compiler.typeComp.compileClassTypePath(c.get()),
+										compiler.typeComp.compileTypeParams(params),
+										cf.get().name
+									)
+								);
+							case FStatic(c, cf):
+								CSField(
+									compileToCSExpr(e),
+									CSFStatic(
+										compiler.typeComp.compileClassTypePath(c.get()),
+										// C# type inference should be able to infer generic types
+										// from arguments, but it also allows the types to be explicit.
+										// We might need that in some situation where inference is not enough?
+										[],
+										cf.get().name
+									)
+								);
+							case FAnon(cf):
+								// We rely on dynamic access to read anon fields, because for now,
+								// they will be backed with `haxe.lang.DynamicObject` anyway
+								compileDynamicGetField(expr, cf.get().name);
+							case FDynamic(s):
+								compileDynamicGetField(expr, s);
+							case FClosure(c, cf):
+								// TODO: do we need to generate different code than FInstance?
+								CSField(
+									compileToCSExpr(e),
+									CSFInstance(
+										c?.c != null ? compiler.typeComp.compileClassTypePath(c.c.get()) : 'object', // TODO: Should it be 'object' if we don't have any class type there?
+										c?.params != null ? compiler.typeComp.compileTypeParams(c.params) : [],
+										cf.get().name
+									)
+								);
+							case FEnum(en, ef):
+								CSField(
+									compileToCSExpr(e),
+									CSFInstance(
+										compiler.typeComp.compileEnumTypePath(en.get()),
+										[],
+										ef.name
+									)
+								);
+						}
+					})
+				}
 			}
-			case TTypeExpr(m): {
+			
+			case TTypeExpr(moduleType): {
+				compiler.addModuleTypeForCompilation(moduleType);
+
 				// Note:
 				//     we don't have access to type params here,
 				//     so they are always empty.
 				// TODO: or can we resolve them from the expression type?
-				switch m {
+				switch moduleType {
 					case TClassDecl(c):
 					{
 						haxeExpr: expr,
@@ -298,9 +311,8 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					})
 				}
 			}
-			case TCall(e, el):
-			// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
-			{
+			case TCall(e, el): {
+				// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
 				haxeExpr: expr,
 				def: CSExprStatement({
 					haxeExpr: expr,
@@ -315,19 +327,22 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					)
 				})
 			}
-			case TNew(classTypeRef, params, el):
-			// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
-			{
-				haxeExpr: expr,
-				def: CSExprStatement({
+			case TNew(classTypeRef, params, el): {
+				compiler.addModuleTypeForCompilation(TClassDecl(classTypeRef));
+
+				// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
+				{
 					haxeExpr: expr,
-					type: csType,
-					def: CSNew(
-						compiler.typeComp.compileClassTypePath(classTypeRef.get()),
-						params.map(p -> compiler.compileType(p, expr.pos)),
-						el.map(e -> compileToCSExpr(e))
-					)
-				})
+					def: CSExprStatement({
+						haxeExpr: expr,
+						type: csType,
+						def: CSNew(
+							compiler.typeComp.compileClassTypePath(classTypeRef.get()),
+							params.map(p -> compiler.compileType(p, expr.pos)),
+							el.map(e -> compileToCSExpr(e))
+						)
+					})
+				}
 			}
 			case TUnop(op, postFix, e): {
 				haxeExpr: expr,
@@ -428,9 +443,10 @@ class CSCompiler_Expr extends CSCompiler_Base {
 			case TCast(subExpr, maybeModuleType): {
 				if (maybeModuleType == null) {
 					compileToCSStatement(subExpr);
-				}
-				else {
-					final type = TypeTools.fromModuleType(maybeModuleType);
+				} else {
+					compiler.addModuleTypeForCompilation(maybeModuleType);
+
+					final type = #if macro TypeTools.fromModuleType(maybeModuleType) #else null #end;
 					{
 						haxeExpr: expr,
 						def: CSCast(
