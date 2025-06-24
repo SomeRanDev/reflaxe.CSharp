@@ -1,0 +1,81 @@
+{
+	"lineEnds": {
+		"leftCurly": "after",
+		"rightCurly": "before",
+		"objectLiteralCurly": {
+			"leftCurly": "after"
+		},
+		"emptyCurly": "break"
+	},
+	"sameLine": {
+		"ifElse": "same",
+		"doWhile": "same",
+		"tryBody": "same",
+		"tryCatch": "same",
+		"functionBody": "next",
+		"anonFunctionBody": "same"
+	},
+	"indentation": {
+		"trailingWhitespace": true,
+		"character": "\t"
+	},
+	"emptyLines": {
+		"enumAbstractEmptyLines": {
+			"beginType": 0,
+			"endType": 0,
+			"betweenVars": 0,
+			"afterVars": 1,
+			"betweenFunctions": 1,
+			"existingBetweenFields": "keep"
+		},
+		"importAndUsing": {
+			"betweenImportsLevel": "firstLevelPackage",
+			"betweenImports": 1,
+			"beforeUsing": 1
+		},
+		"maxAnywhereInFile": 1
+	},
+	"whitespace": {
+		"colonPolicy": "around",
+		"caseColonPolicy": "onlyAfter",
+		"objectFieldColonPolicy": "onlyAfter",
+		"typeHintColonPolicy": "onlyAfter",
+		"typeCheckColonPolicy": "around",
+		"ternaryPolicy": "around",
+		"arrowFunctionsPolicy": "around",
+		"functionTypeHaxe3Policy": "around",
+		"functionTypeHaxe4Policy": "around",
+		"parenConfig": {
+			"catchParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter"
+			},
+			"ifConditionParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter"
+			},
+			"sharpConditionParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "none"
+			},
+			"switchConditionParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter"
+			},
+			"whileConditionParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter"
+			},
+			"funcParamParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"anonFuncParamParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			}
+		}
+	}
+}
