@@ -1,5 +1,5 @@
 namespace haxe.root {
-  class Child {
+  class Child: Base {
     public override void func() {
 
     }

@@ -57,6 +57,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// compiler.compileMetadata(classType.meta, MetadataTarget.Class);
 		
 		// Basic declaration
+		var superClass = null;
 		if(classType.superClass != null) {
 			compiler.addModuleTypeForCompilation(TClassDecl(classType.superClass.t));
 			for(typeParam in classType.superClass.params) {
@@ -64,6 +65,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 			}
 			
 			// TODO superclass
+			superClass = compiler.compileClassName(classType.superClass.t.get());
 		}
 		
 		for(inter in classType.interfaces) {
@@ -88,6 +90,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 			nameSpace: csNameSpace,
 			def: CSTopLevelClass({
 				name: csClassName,
+				superClass: superClass,
 				fields: csFields
 			})
 		};
