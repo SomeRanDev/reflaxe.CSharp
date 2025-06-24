@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Test on Ubuntu (GCC)
     steps:
       - uses: krdlab/setup-haxe@v1
@@ -23,6 +23,12 @@ jobs:
         with:
           version: latest
           platform: x64
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            5.0.x
 
       - name: Install & Check Haxe
         run: haxe -version
