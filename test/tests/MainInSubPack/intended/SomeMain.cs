@@ -1,7 +1,8 @@
 namespace somepack {
-	class SomeMain {
-		public static void main() {
+  class SomeMain {
+    public static void main() {
 
-		}
-	}
+    }
+
+  }
 }

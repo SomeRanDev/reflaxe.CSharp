@@ -1,5 +1,6 @@
 {
 	"filesGenerated": [
+		"Main.cs",
 		"build.csproj",
 		"HaxeBoot.cs"
 	],

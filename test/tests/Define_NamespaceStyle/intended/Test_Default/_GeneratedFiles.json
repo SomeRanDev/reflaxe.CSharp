@@ -1,5 +1,6 @@
 {
 	"filesGenerated": [
+		"namespacestyle_Main.cs",
 		"build.csproj",
 		"HaxeBoot.cs"
 	],

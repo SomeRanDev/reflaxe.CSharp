@@ -1,61 +1,35 @@
 namespace haxe.root {
-	class Main {
-		int localVar;
+  class Main {
+    public int localVar;
+    public int? localNullVar;
+    public static int numTests;
+    public static int numFailures;
+    public static bool trueValue;
+    public static bool falseValue;
+    public static int staticVar;
+    public static int? staticNullVar;
+    public  Main() {
 
-		int? localNullVar;
+    }
+    public void foo3(int? nullableInt) {
 
-		static int numTests;
+    }
+    public void foo4(int? optInt = null) {
 
-		static int numFailures;
+    }
+    public void foo5(int? nullableIntWithDef = 4) {
 
-		static bool trueValue;
+    }
+    public void foo6(int? optIntWithDef = 4) {
 
-		static bool falseValue;
+    }
+    public static void main() {
+      {
+        System.Console.WriteLine("\"Main.main()\"");
+        haxe.root.Main.trueValue = true;
+        haxe.root.Main.falseValue = false;
+      }
+    }
 
-		static int staticVar;
-
-		static int? staticNullVar;
-
-		public Main() {
-
-		}
-
-		public void foo(int optInt, String reqString) {
-
-		}
-
-		public void foo(String reqString) {
-			foo(4, reqString);
-		}
-
-		public bool foo2(int optInt, String reqString, bool optBool = false) {
-			return false;
-		}
-
-		public bool foo2(String reqString, bool optBool = false) {
-			return foo2(4, reqString, optBool);
-		}
-
-		public void foo3(int? nullableInt) {
-
-		}
-
-		public void foo4(int? optInt = null) {
-
-		}
-
-		public void foo5(int? nullableIntWithDef = 4) {
-
-		}
-
-		public void foo6(int? optIntWithDef = 4) {
-
-		}
-
-		public static void main() {
-			System.Console.WriteLine("Main.main()");
-			haxe.root.Main.trueValue = true;
-			haxe.root.Main.falseValue = false;
-		}
-	}
+  }
 }

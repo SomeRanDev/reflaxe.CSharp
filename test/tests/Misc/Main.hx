@@ -36,13 +36,14 @@ class Main {
 		}
 	}
 
-	function foo(optInt:Int = 4, reqString:String) {
+	// UNCOMMENT THESE TWO FUNCTIONS NEXT!
+	// function foo(optInt:Int = 4, reqString:String) {
 
-	}
+	// }
 
-	function foo2(optInt:Int = 4, reqString:String, optBool:Bool = false) {
-		return false;
-	}
+	// function foo2(optInt:Int = 4, reqString:String, optBool:Bool = false) {
+	// 	return false;
+	// }
 
 	function foo3(nullableInt:Null<Int>) {
 

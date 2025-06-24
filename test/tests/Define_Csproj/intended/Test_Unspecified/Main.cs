@@ -1,7 +1,8 @@
 namespace haxe.root {
-	class Main_Fields_ {
-		public static void main() {
+  class Main_Fields_ {
+    public static void main() {
 
-		}
-	}
+    }
+
+  }
 }

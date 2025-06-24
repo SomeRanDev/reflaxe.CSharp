@@ -1,7 +1,8 @@
 namespace Haxe {
-	class HaxeBoot {
-		static void Main(string[] args) {
-			;
-		}
-	}
+  class HaxeBoot {
+    public static void Main(string[] args) {
+      haxe.root.Main.main();
+    }
+
+  }
 }
