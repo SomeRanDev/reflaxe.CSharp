@@ -2,7 +2,6 @@ package cscompiler.ast;
 
 #if(macro || cs_runtime)
 import haxe.macro.Expr;
-import haxe.macro.Type;
 
 /**
 	TODO: Give each case a better description.
@@ -76,5 +75,14 @@ enum CSExprDef {
 		An unknown identifier.
 	**/
 	CSIdent(s: String);
+	
+	/**
+		A direct piece of C# code injected from Haxe.
+	**/
+	CSInject(entries: Array<CSInjectEntry>);
+} enum CSInjectEntry {
+
+	Code(csCode: String);
+	Expression(statement: CSExpr);
 }
 #end

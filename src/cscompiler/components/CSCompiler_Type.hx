@@ -63,7 +63,6 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case TAbstract(absRef, params): {
 					var absType = absRef.get();
 					var primitiveType = checkPrimitiveType(absType, params);
-					
 					if(primitiveType != null) {
 						CSValue(primitiveType, [], false);
 					} else if(absType.name == "Null") {
@@ -205,6 +204,9 @@ class CSCompiler_Type extends CSCompiler_Base {
 		the C# output.
 	**/
 	public function compileClassName(classType: ClassType, withPack: Bool = false): String {
+		if(classType.pack.length == 0 && classType.name == "String") {
+			return "string";
+		}
 		return if(withPack) {
 			getNameSpace(classType) + "." + classType.getNameOrNative();
 		} else {

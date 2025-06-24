@@ -2,18 +2,23 @@ package cscompiler.components;
 
 #if(macro || cs_runtime)
 import cscompiler.ast.*;
+import cscompiler.ast.CSExprDef.CSInjectEntry;
 import cscompiler.ast.CSStatement;
+import cscompiler.ast.CSVar.CSVarType;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
 
+import reflaxe.compiler.TargetCodeInjection;
 import reflaxe.helpers.OperatorHelper;
 
+using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
 using reflaxe.helpers.NullHelper;
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.TypedExprHelper;
+using reflaxe.helpers.TypeHelper;
 
 /**
 	The component responsible for compiling Haxe
@@ -231,42 +236,14 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					//     we don't have access to type params here,
 					//     so they are always empty.
 					// TODO: or can we resolve them from the expression type?
-					switch moduleType {
-						case TClassDecl(c):
-							{
-								haxeExpr: expr,
-								def: CSExprStatement({
-									haxeExpr: expr,
-									type: csType,
-									def: CSTypeExpr(compiler.compileType(TInst(c, []), expr.pos))
-								})
-							}
-						case TEnumDecl(e): {
-								haxeExpr: expr,
-								def: CSExprStatement({
-									haxeExpr: expr,
-									type: csType,
-									def: CSTypeExpr(compiler.compileType(TEnum(e, []), expr.pos))
-								})
-							}
-						case TTypeDecl(t): {
-								haxeExpr: expr,
-								def: CSExprStatement({
-									haxeExpr: expr,
-									type: csType,
-									def: CSTypeExpr(compiler.compileType(TType(t, []), expr.pos))
-								})
-							}
-						case TAbstract(a): {
-								haxeExpr: expr,
-								def: CSExprStatement({
-									haxeExpr: expr,
-									type: csType,
-									def: CSTypeExpr(
-										compiler.compileType(TAbstract(a, []), expr.pos)
-									)
-								})
-							}
+					final haxeType = TypeHelper.fromModuleType(moduleType);
+					{
+						haxeExpr: expr,
+						def: CSExprStatement({
+							haxeExpr: expr,
+							type: csType,
+							def: CSTypeExpr(compiler.compileTypeOrError(haxeType, expr.pos))
+						})
 					}
 				}
 			case TParenthesis(e): {
@@ -313,20 +290,55 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					}
 				}
 			case TCall(e, el): {
-					// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
-					haxeExpr: expr,
-					def: CSExprStatement({
+					if(compiler.options.targetCodeInjectionName != null) {
+						final result = TargetCodeInjection.checkTargetCodeInjectionGeneric(
+							compiler.options.targetCodeInjectionName,
+							expr,
+							compiler
+						);
+						if(result != null) {
+							final entries: Array<CSInjectEntry> = [];
+							for(entry in result) {
+								switch(entry) {
+									case Left(code): {
+											entries.push(Code(code));
+										}
+									case Right({def: CSExprStatement(expression)}): {
+											entries.push(Expression(expression));
+										}
+									case Right(_): {
+											// TODO: Convert to Context.error
+											throw "Cannot use statement within inject expression.";
+										}
+								}
+							}
+							return {
+								haxeExpr: expr,
+								def: CSExprStatement({
+									haxeExpr: expr,
+									type: csType,
+									def: CSInject(entries)
+								})
+							};
+						}
+					}
+					
+					{
+						// TODO: do we need to generate something different if using @:nativeFunctionCode here? (reflaxe feature)
 						haxeExpr: expr,
-						type: csType,
-						def: CSCall(
-							compileToCSExpr(
-								e
-							), // TODO: do we need to explicitly add type params on generic C# method calls?
-							
-							[],
-							el.map(e -> compileToCSExpr(e))
-						)
-					})
+						def: CSExprStatement({
+							haxeExpr: expr,
+							type: csType,
+							def: CSCall(
+								compileToCSExpr(
+									e
+								), // TODO: do we need to explicitly add type params on generic C# method calls?
+								
+								[],
+								el.map(e -> compileToCSExpr(e))
+							)
+						})
+					}
 				}
 			case TNew(classTypeRef, params, el): {
 					compiler.addModuleTypeForCompilation(TClassDecl(classTypeRef));
@@ -339,7 +351,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							type: csType,
 							def: CSNew(
 								compiler.typeComp.compileClassTypePath(classTypeRef.get()),
-								params.map(p -> compiler.compileType(p, expr.pos)),
+								params.map(p -> compiler.compileTypeOrError(p, expr.pos)),
 								el.map(e -> compileToCSExpr(e))
 							)
 						})
@@ -354,34 +366,45 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					})
 				}
 			case TFunction(tfunc): {
-					haxeExpr: expr,
-					def: CSExprStatement({
+					final returnType = compiler.compileType(tfunc.t, expr.pos);
+					{
 						haxeExpr: expr,
-						type: csType,
-						def: CSFunctionExpr({
-							args: compileFuncArgs(tfunc.args, expr.pos),
-							returnKind: ReturnType(compiler.compileType(tfunc.t, expr.pos)),
-							statement: compileToCSStatement(tfunc.expr)
+						def: CSExprStatement({
+							haxeExpr: expr,
+							type: csType,
+							def: CSFunctionExpr({
+								args: compileFuncArgs(tfunc.args, expr.pos),
+								returnKind: returnType != null ? ReturnType(
+									returnType
+								) : InferReturnType,
+								statement: compileToCSStatement(tfunc.expr)
+							})
 						})
-					})
+					}
 				}
 			case TVar(tvar, maybeExpr): {
-					haxeExpr: expr,
-					def: CSVar({
-						name: compiler.compileVarName(tvar.name),
-						type: csType.orError("TODO: Handle TVar provided `null` type."),
-					}, maybeExpr != null ? compileToCSExpr(maybeExpr) : null)
+					final tvarCsType = compiler.compileType(tvar.t, expr.pos);
+					{
+						haxeExpr: expr,
+						def: CSVar({
+							name: compiler.compileVarName(tvar.name),
+							type: tvarCsType != null ? KnownType(tvarCsType) : Infer,
+						}, maybeExpr != null ? compileToCSExpr(maybeExpr) : null)
+					}
 				}
 			case TBlock(expressionList): {
 					haxeExpr: expr,
 					def: CSBlock(expressionList.map(e -> compileToCSStatement(e)))
 				}
 			case TFor(tvar, iterExpr, blockExpr): {
-					haxeExpr: expr,
-					def: CSForeach({
-						name: compiler.compileVarName(tvar.name),
-						type: compiler.compileType(tvar.t, expr.pos)
-					}, compileToCSExpr(iterExpr), compileToCSStatementArray(blockExpr))
+					final tvarType = compiler.compileType(tvar.t, expr.pos);
+					{
+						haxeExpr: expr,
+						def: CSForeach({
+							name: compiler.compileVarName(tvar.name),
+							type: tvarType != null ? KnownType(tvarType) : Infer,
+						}, compileToCSExpr(iterExpr), compileToCSStatementArray(blockExpr))
+					}
 				}
 			case TIf(condExpr, ifContentExpr, elseExpr): {
 					haxeExpr: expr,
@@ -436,7 +459,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					} else {
 						compiler.addModuleTypeForCompilation(maybeModuleType);
 						
-						final type = {
+						final haxeType = {
 							#if macro
 							// This function does not exist outside of "macro" target.
 							TypeTools.fromModuleType(maybeModuleType);
@@ -448,8 +471,8 @@ class CSCompiler_Expr extends CSCompiler_Base {
 							haxeExpr: expr,
 							def: CSCast(
 								compileToCSExpr(subExpr),
-								compiler.compileType(type, expr.pos),
-								compiler.typeComp.isValueType(type)
+								compiler.compileTypeOrError(haxeType, expr.pos),
+								compiler.typeComp.isValueType(haxeType)
 							)
 						}
 					}
@@ -699,7 +722,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		for(arg in args) {
 			result.push({
 				name: compiler.compileVarName(arg.v.name),
-				type: compiler.compileType(arg.v.t, pos),
+				type: compiler.compileTypeOrError(arg.v.t, pos),
 				opt: arg.value != null,
 				value: arg.value != null ? compileToCSExpr(arg.value) : null
 			});
@@ -750,7 +773,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 		for(aCatch in catches) {
 			result.push({
 				name: compiler.compileVarName(aCatch.v.name),
-				type: compiler.compileType(aCatch.v.t, aCatch.expr.pos),
+				type: compiler.compileTypeOrError(aCatch.v.t, aCatch.expr.pos),
 				content: compileToCSStatementArray(aCatch.expr)
 			});
 		}

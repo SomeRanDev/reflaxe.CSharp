@@ -5,9 +5,7 @@ import cscompiler.ast.*;
 import cscompiler.ast.CSFunction.CSFunctionReturnKind;
 
 import haxe.macro.Type;
-import haxe.display.Display.MetadataTarget;
 
-import reflaxe.BaseCompiler;
 import reflaxe.data.ClassVarData;
 import reflaxe.data.ClassFuncData;
 import reflaxe.input.ClassHierarchyTracker;
@@ -52,9 +50,6 @@ class CSCompiler_Class extends CSCompiler_Base {
 	**/
 	public function compile(classType: ClassType, varFields: Array<ClassVarData>,
 			funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
-		// Temp fix for CSType return
-		return null;
-		
 		// Stores all the variables and fields to put together later.
 		init(classType);
 		
@@ -129,7 +124,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 		csFields.push({
 			name: varName,
 			modifiers: modifiers,
-			kind: CSVar(varType, csExpr)
+			kind: CSVar(varType != null ? KnownType(varType) : Infer, csExpr)
 		});
 	}
 	
@@ -157,11 +152,12 @@ class CSCompiler_Class extends CSCompiler_Base {
 			// so we don't need to do anything special to compile it as a lambda.
 			final e = field.expr();
 			if(e != null) {
+				final varFieldType = compiler.compileType(field.type, field.pos);
 				csFields.push({
 					name: name,
 					modifiers: modifiers,
 					kind: CSVar(
-						compiler.compileType(field.type, field.pos),
+						varFieldType != null ? KnownType(varFieldType) : Infer,
 						compiler.compileClassVarExpr(e)
 					)
 				});
@@ -181,7 +177,8 @@ class CSCompiler_Class extends CSCompiler_Base {
 				ReturnVoid;
 			} else {
 				// Compile return type if not a constructor or void
-				ReturnType(compiler.compileType(f.ret, field.pos));
+				final type = compiler.compileType(f.ret, field.pos);
+				type != null ? ReturnType(type) : InferReturnType;
 			}
 			
 			// Compile expression

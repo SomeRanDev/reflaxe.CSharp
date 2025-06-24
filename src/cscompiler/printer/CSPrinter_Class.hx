@@ -21,8 +21,18 @@ class CSPrinter_Class extends CSPrinter_Base {
 			printer.printTypeParams(cls.superClassTypeParams);
 		}
 		
-		printer.writeln("{");
-		// TODO
+		write(" {");
+		newline();
+		indent();
+		
+		for(field in cls.fields) {
+			printer.printField(field);
+			newline();
+		}
+		
+		newline();
+		unindent();
+		write("}");
 	}
 }
 #end

@@ -44,7 +44,7 @@ class CSPrinter_Type extends CSPrinter_Base {
 	}
 	
 	public function printTypePath(typePath: CSTypePath) {
-		// TODO
+		printer.printTypePath(typePath);
 	}
 	
 	public function printTypeParams(typeParams: Array<CSType>) {

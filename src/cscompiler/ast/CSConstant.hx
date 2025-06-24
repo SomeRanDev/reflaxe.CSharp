@@ -7,6 +7,7 @@ package cscompiler.ast;
 	TODO: Give each case a better description.
 **/
 enum CSConstant {
+	CSChar(i: Int);
 	CSInt(i: Int);
 	
 	/**

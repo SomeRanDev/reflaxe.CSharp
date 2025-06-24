@@ -23,5 +23,6 @@ class CSFunction {
 	Constructor;
 	ReturnVoid;
 	ReturnType(returnType: CSType);
+	InferReturnType;
 }
 #end

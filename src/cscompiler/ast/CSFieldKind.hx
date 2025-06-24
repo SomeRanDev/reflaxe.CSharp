@@ -8,9 +8,13 @@ import cscompiler.ast.CSFunction;
 enum CSFieldKind {
 	CSMethod(func: CSFunction);
 	
-	CSVar(type: CSType, expr: Null<CSExpr>);
+	CSVar(type: CSFieldVarType, expr: Null<CSExpr>);
 	
 	// TODO will we need that?
 	CSProp(type: CSType, get: Null<CSStatement>, set: Null<CSStatement>);
+} enum CSFieldVarType {
+
+	Infer;
+	KnownType(type: CSType);
 }
 #end

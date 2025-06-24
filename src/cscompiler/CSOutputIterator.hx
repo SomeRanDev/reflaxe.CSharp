@@ -41,6 +41,8 @@ class CSOutputIterator {
 			compiler.enums[index - compiler.classes.length];
 		}
 		
+		index++;
+		
 		final printer = new CSPrinter();
 		printer.printTopLevel(topLevelAst.data);
 		return topLevelAst.withOutput(printer.toString());

@@ -1,14 +1,15 @@
 package cscompiler;
 
 #if(macro || cs_runtime)
-import cscompiler.ast.CSTypePath;
-import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSArg;
-import cscompiler.ast.CSTopLevel;
 import cscompiler.ast.CSClass;
-import cscompiler.ast.CSEnum;
+import cscompiler.ast.CSExpr;
+import cscompiler.ast.CSField;
+import cscompiler.ast.CSFunction;
 import cscompiler.ast.CSStatement;
+import cscompiler.ast.CSTopLevel;
 import cscompiler.ast.CSType;
+import cscompiler.ast.CSTypePath;
 import cscompiler.components.*;
 import cscompiler.config.Define;
 
@@ -108,22 +109,46 @@ class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSState
 		Called at the start of compilation.
 	**/
 	public override function onCompileStart() {
-		setupMainFunction();
+		compileMainFunction();
 		setupCsProj();
 	}
 	
 	/**
 		If -main exists, generate a Main function in C#.
 	**/
-	function setupMainFunction() {
+	function compileMainFunction() {
 		final mainExpr = getMainExpr();
 		if(mainExpr != null) {
-			final csExpr = compileExpressionOrError(mainExpr);
+			final csStatement: CSStatement = compileExpressionOrError(mainExpr);
 			
-			// TODO: Convert `csExpr` to `String` using printer
-			final csCode = "";
+			final stringArrayArg: CSArg = {
+				name: "args",
+				type: CSArray("string", []),
+				opt: false,
+				value: null
+			};
 			
-			appendToExtraFile(BootFilename, haxeBootContent(csCode));
+			final csMainFunction: CSField = {
+				name: "Main",
+				modifiers: [CSPublic, CSStatic],
+				kind: CSMethod(
+					new CSFunction([stringArrayArg], CSFunctionReturnKind.ReturnVoid, csStatement)
+				)
+			};
+			
+			final csMainClass: CSClass = {
+				name: "HaxeBoot",
+				typeParams: [],
+				superClass: null,
+				superClassTypeParams: [],
+				fields: [csMainFunction]
+			};
+			
+			final csTopLevel = new CSTopLevel(CSTopLevelClass(csMainClass), "Haxe");
+			
+			final printer = new CSPrinter();
+			printer.printTopLevel(csTopLevel);
+			appendToExtraFile(BootFilename, printer.toString());
 		}
 	}
 	
@@ -229,13 +254,27 @@ namespace Haxe {
 		Generates the C# type from `haxe.macro.Type`.
 
 		A `Position` is provided so compilation errors can be reported to it.
+
+		If the type cannot be represented in C#, `null` is returned.
 	**/
-	public function compileType(type: Type, pos: Position): CSType {
-		final result = typeComp.compile(type, pos);
-		if(result == null) {
-			throw "Type could not be generated: " + Std.string(type);
+	public function compileType(type: Type, pos: Position): Null<CSType> {
+		return typeComp.compile(type, pos);
+	}
+	
+	/**
+		Generates the C# type from `haxe.macro.Type`.
+
+		A `Position` is provided so compilation errors can be reported to it.
+
+		Generates an error if the type cannot be compiled to C#. Use this to generate types you must have.
+	**/
+	public function compileTypeOrError(type: Type, pos: Position): CSType {
+		final result = compileType(type, pos);
+		return if(result == null) {
+			Context.error("Type could not be generated: " + Std.string(type), pos);
+		} else {
+			result;
 		}
-		return result;
 	}
 	
 	/**
@@ -273,7 +312,7 @@ namespace Haxe {
 			expr: Null<TypedExpr> = null): CSArg {
 		return {
 			name: compileVarName(name),
-			type: compileType(t, pos),
+			type: compileTypeOrError(t, pos),
 			opt: optional,
 			value: expr != null ? compileToCSExpr(expr) : null
 		};

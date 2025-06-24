@@ -1,6 +1,8 @@
 package cscompiler.ast;
 
 #if(macro || cs_runtime)
+import cscompiler.ast.CSType;
+
 /**
 	Represents a variable in C#.
 **/
@@ -13,17 +15,21 @@ class CSVar {
 		objects when obtaining data from OCaml.
 	**/
 	// var id: Int;
-	var name: String;
+	public var name(default, null): String;
 	
-	var type: CSType;
+	public var type(default, null): CSVarType;
 	
 	// static var nextId = 0;
 	
-	public function new(name: String, type: CSType) {
+	public function new(name: String, type: CSVarType) {
 		// id = nextId++;
 		
 		this.name = name;
 		this.type = type;
 	}
+} enum CSVarType {
+
+	Infer;
+	KnownType(type: CSType);
 }
 #end
