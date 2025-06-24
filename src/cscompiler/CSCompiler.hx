@@ -1,30 +1,6 @@
 package cscompiler;
 
 #if(macro || cs_runtime)
-import sys.io.File;
-
-import haxe.io.Path;
-import haxe.macro.Expr;
-import haxe.macro.Type;
-
-// ---
-import reflaxe.BaseCompiler;
-import reflaxe.GenericCompiler;
-import reflaxe.data.ClassVarData;
-import reflaxe.data.ClassFuncData;
-import reflaxe.data.EnumOptionData;
-import reflaxe.helpers.Context;
-import reflaxe.output.DataAndFileInfo;
-import reflaxe.output.StringOrBytes;
-
-using reflaxe.helpers.SyntaxHelper;
-using reflaxe.helpers.ModuleTypeHelper;
-using reflaxe.helpers.NameMetaHelper;
-using reflaxe.helpers.NullableMetaAccessHelper;
-using reflaxe.helpers.OperatorHelper;
-using reflaxe.helpers.TypeHelper;
-
-// ---
 import cscompiler.ast.CSTypePath;
 import cscompiler.ast.CSExpr;
 import cscompiler.ast.CSArg;
@@ -35,6 +11,30 @@ import cscompiler.ast.CSStatement;
 import cscompiler.ast.CSType;
 import cscompiler.components.*;
 import cscompiler.config.Define;
+
+import haxe.io.Path;
+import haxe.macro.Expr;
+import haxe.macro.Type;
+
+import sys.io.File;
+
+import reflaxe.BaseCompiler;
+import reflaxe.GenericCompiler;
+import reflaxe.data.ClassVarData;
+import reflaxe.data.ClassFuncData;
+import reflaxe.data.EnumOptionData;
+import reflaxe.helpers.Context;
+import reflaxe.output.DataAndFileInfo;
+import reflaxe.output.StringOrBytes;
+
+// ---
+using reflaxe.helpers.ModuleTypeHelper;
+using reflaxe.helpers.NameMetaHelper;
+using reflaxe.helpers.NullableMetaAccessHelper;
+using reflaxe.helpers.NullHelper;
+using reflaxe.helpers.OperatorHelper;
+using reflaxe.helpers.SyntaxHelper;
+using reflaxe.helpers.TypeHelper;
 
 /**
 	The class that manages the generation of the C# code.
@@ -134,7 +134,8 @@ class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSState
 			Store `args` to use with `Sys.args()` later.
 	**/
 	function haxeBootContent(csCode: String) {
-		return StringTools.trim('
+		return StringTools.trim(
+			'
 namespace Haxe {
 	class HaxeBoot {
 		static void Main(string[] args) {
@@ -142,7 +143,8 @@ namespace Haxe {
 		}
 	}
 }
-		');
+		'
+		);
 	}
 	
 	/**
@@ -171,7 +173,8 @@ namespace Haxe {
 		Returns the default content of the .csproj file.
 	**/
 	function csProjDefaultContent() {
-		return StringTools.trim('
+		return StringTools.trim(
+			'
 <Project Sdk="Microsoft.NET.Sdk">
 
 <PropertyGroup>
@@ -183,7 +186,8 @@ namespace Haxe {
 </PropertyGroup>
 
 </Project>
-		');
+		'
+		);
 	}
 	
 	/**
@@ -198,16 +202,7 @@ namespace Haxe {
 		TODO.
 	**/
 	public function generateOutputIterator(): Iterator<DataAndFileInfo<StringOrBytes>> {
-		// TODO: Print all classes and enums using these vars from `GenericCompiler`:
-		// var classes: Array<CSClass>
-		// var enums: Array<CSEnum>
-		
-		return {
-			hasNext: () -> false,
-			next: () -> {
-				return new DataAndFileInfo(StringOrBytes.fromString(""), @:nullSafety(Off) null, null, null);
-			}
-		};
+		return new CSOutputIterator(this);
 	}
 	
 	// ---
@@ -215,14 +210,16 @@ namespace Haxe {
 	/**
 		Generate the C# output given the Haxe class information.
 	**/
-	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
+	public function compileClassImpl(classType: ClassType, varFields: Array<ClassVarData>,
+			funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
 		return classComp.compile(classType, varFields, funcFields);
 	}
 	
 	/**
 		Generate the C# output given the Haxe enum information.
 	**/
-	public function compileEnumImpl(enumType: EnumType, options: Array<EnumOptionData>): Null<CSTopLevel> {
+	public function compileEnumImpl(enumType: EnumType,
+			options: Array<EnumOptionData>): Null<CSTopLevel> {
 		return enumComp.compile(enumType, options);
 	}
 	
@@ -257,6 +254,14 @@ namespace Haxe {
 		return typeComp.compileClassName(classType);
 	}
 	
+	/**
+		Get the name of the `EnumType` as it should appear in
+		the C# output.
+	**/
+	public function compileEnumName(enumType: EnumType): String {
+		return typeComp.compileEnumName(enumType);
+	}
+	
 	// ---
 	
 	/**
@@ -264,7 +269,8 @@ namespace Haxe {
 
 		Note: it's possible for an argument to be optional but not have an `expr`.
 	**/
-	public function compileFunctionArgument(t: Type, name: String, pos: Position, optional: Bool, expr: Null<TypedExpr> = null): CSArg {
+	public function compileFunctionArgument(t: Type, name: String, pos: Position, optional: Bool,
+			expr: Null<TypedExpr> = null): CSArg {
 		return {
 			name: compileVarName(name),
 			type: compileType(t, pos),
@@ -314,7 +320,7 @@ namespace Haxe {
 		// a block, and make this method not needed anymore
 		
 		final lines = s.split("\n");
-		for (i in 0...lines.length) {
+		for(i in 0...lines.length) {
 			lines[i] = StringTools.rtrim(lines[i]);
 		}
 		return lines.join("\n");
@@ -327,8 +333,8 @@ namespace Haxe {
 	**/
 	public function nameToHash(name: String): Int {
 		var h: Int = 0;
-		for (i in 0...name.length) {
-			h = 223 * h + name.charCodeAt(i);
+		for(i in 0...name.length) {
+			h = 223 * h + name.charCodeAt(i).trustMe();
 		}
 		h %= 0x1FFFFF7B;
 		

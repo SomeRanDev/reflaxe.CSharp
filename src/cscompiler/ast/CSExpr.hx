@@ -15,7 +15,8 @@ class CSExpr {
 	public var haxeExpr(default, null): Null<TypedExpr> = null;
 	public var type(default, null): Null<CSType> = null;
 	
-	public function new(def: CSExprDef, haxeExpr: Null<TypedExpr> = null, type: Null<CSType> = null) {
+	public function new(def: CSExprDef, haxeExpr: Null<TypedExpr> = null,
+			type: Null<CSType> = null) {
 		this.def = def;
 		this.haxeExpr = haxeExpr;
 		this.type = type;

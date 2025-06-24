@@ -14,6 +14,7 @@ import cscompiler.helpers.StringTools;
 
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
+using reflaxe.helpers.NullHelper;
 
 /**
 	The component responsible for compiling Haxe
@@ -93,13 +94,25 @@ class CSCompiler_Type extends CSCompiler_Base {
 		return [];
 	}
 	
-	function compileFunctionType(args: Array<{name: String, opt: Bool, t: Type}>, ret: Type, pos: Position): CSType {
-		return CSFunction(args.map(arg -> {
+	function compileFunctionType(args: Array<{
+		name: String,
+		opt: Bool,
+		t: Type
+	}>, ret: Type, pos: Position): CSType {
+		final args: Array<CSArg> = args.map(arg -> {
 			name: arg.name,
 			opt: arg.opt,
-			type: compile(arg.t, pos),
+			type: compile(
+				arg.t,
+				pos
+			).orError("TODO: Handle when function type argument type is null."),
 			value: null
-		}), compile(ret, pos));
+		});
+		final maybeReturnType = compile(ret, pos);
+		return maybeReturnType != null ? CSFunction(
+			args,
+			maybeReturnType
+		) : CSFunctionNoReturn(args);
 	}
 	
 	function makeNullable(type: Null<CSType>): Null<CSType> {
@@ -113,6 +126,8 @@ class CSCompiler_Type extends CSCompiler_Base {
 			case CSEnum(_, _):
 				type;
 			case CSFunction(_, _):
+				type;
+			case CSFunctionNoReturn(_):
 				type;
 			case CSValue(typePath, params, _):
 				// Value types need to be explicitly nullable,

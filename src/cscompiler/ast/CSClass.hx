@@ -1,6 +1,8 @@
 package cscompiler.ast;
 
 #if(macro || cs_runtime)
+import haxe.macro.Type;
+
 /**
 	Represents a class in C#.
 

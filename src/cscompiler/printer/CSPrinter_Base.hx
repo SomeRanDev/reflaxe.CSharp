@@ -1,4 +1,4 @@
-package cscompiler.components;
+package cscompiler.printer;
 
 #if(macro || cs_runtime)
 /**

@@ -20,7 +20,12 @@ class CSCompiler_Enum extends CSCompiler_Base {
 		TODO.
 	**/
 	public function compile(enumType: EnumType, options: Array<EnumOptionData>): Null<CSTopLevel> {
-		return null;
+		return {
+			nameSpace: compiler.typeComp.getNameSpace(enumType),
+			def: CSTopLevelEnum({
+				name: compiler.compileEnumName(enumType),
+			})
+		};
 	}
 }
 #end

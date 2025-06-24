@@ -1,4 +1,4 @@
-package cscompiler.components;
+package cscompiler.printer;
 
 #if(macro || cs_runtime)
 import cscompiler.ast.*;
@@ -9,28 +9,36 @@ import cscompiler.ast.*;
 **/
 class CSPrinter_Type extends CSPrinter_Base {
 	public function printType(type: CSType) {
-		switch type {
+		switch(type) {
 			case CSInst(typePath, params):
-				printTypePath(typePath);
-				printTypeParams(params);
-				
+				{
+					printTypePath(typePath);
+					printTypeParams(params);
+				}
 			case CSEnum(typePath, params):
-				printTypePath(typePath);
-				printTypeParams(params);
-				
+				{
+					printTypePath(typePath);
+					printTypeParams(params);
+				}
 			case CSArray(typePath, params):
-				printTypePath(typePath);
-				printTypeParams(params);
-				write('[]');
-				
-			case CSFunction(args, ret):
-				// TODO
-				
+				{
+					printTypePath(typePath);
+					printTypeParams(params);
+					write('[]');
+				}
+			case CSFunction(args, ret): {
+					// TODO
+				}
+			case CSFunctionNoReturn(args): {
+					// TODO
+				}
 			case CSValue(typePath, params, nullable):
-				printTypePath(typePath);
-				printTypeParams(params);
-				if(nullable) {
-					write('?');
+				{
+					printTypePath(typePath);
+					printTypeParams(params);
+					if(nullable) {
+						write('?');
+					}
 				}
 		}
 	}
@@ -43,7 +51,7 @@ class CSPrinter_Type extends CSPrinter_Base {
 		final len = typeParams.length;
 		if(len > 0) {
 			write('<');
-			for (i in 0...len) {
+			for(i in 0...len) {
 				if(i > 0)
 					write(', ');
 				final typeParam = typeParams[i];

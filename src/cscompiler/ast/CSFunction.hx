@@ -8,14 +8,20 @@ package cscompiler.ast;
 class CSFunction {
 	public var args(default, null): Array<CSArg>;
 	
-	public var ret(default, null): CSType;
+	public var returnKind(default, null): CSFunctionReturnKind;
 	
 	public var statement(default, null): Null<CSStatement> = null;
 	
-	public function new(args: Array<CSArg>, ret: CSType, ?statement: CSStatement) {
+	public function new(args: Array<CSArg>, returnKind: CSFunctionReturnKind,
+			?statement: CSStatement) {
 		this.args = args;
-		this.ret = ret;
+		this.returnKind = returnKind;
 		this.statement = statement;
 	}
+} enum CSFunctionReturnKind {
+
+	Constructor;
+	ReturnVoid;
+	ReturnType(returnType: CSType);
 }
 #end

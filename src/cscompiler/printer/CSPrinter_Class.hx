@@ -1,4 +1,4 @@
-package cscompiler.components;
+package cscompiler.printer;
 
 #if(macro || cs_runtime)
 import cscompiler.ast.*;
@@ -21,6 +21,7 @@ class CSPrinter_Class extends CSPrinter_Base {
 			printer.printTypeParams(cls.superClassTypeParams);
 		}
 		
+		printer.writeln("{");
 		// TODO
 	}
 }

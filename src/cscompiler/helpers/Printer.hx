@@ -53,7 +53,7 @@ class Printer {
 	}
 	
 	public function tab() {
-		for (_ in 0..._level)
+		for(_ in 0..._level)
 			_buf.add(_indent);
 		return this;
 	}

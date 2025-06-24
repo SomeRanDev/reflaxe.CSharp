@@ -26,12 +26,19 @@ enum CSStatementDef {
 	/**
 		C# Switch
 	**/
-	CSSwitch(subject: CSExpr, cases: Array<{value: CSExpr, content: Null<Array<CSStatement>>}>, edef: Null<Array<CSStatement>>);
+	CSSwitch(subject: CSExpr, cases: Array<{
+		value: CSExpr,
+		content: Null<Array<CSStatement>>
+	}>, edef: Null<Array<CSStatement>>);
 	
 	/**
 		C# Try/Catch
 	**/
-	CSTry(content: Array<CSStatement>, catches: Array<{name: String, type: CSType, content: Array<CSStatement>}>);
+	CSTry(content: Array<CSStatement>, catches: Array<{
+		name: String,
+		type: CSType,
+		content: Array<CSStatement>
+	}>);
 	
 	CSBreak;
 	

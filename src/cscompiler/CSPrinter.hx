@@ -3,8 +3,8 @@ package cscompiler;
 #if(macro || cs_runtime)
 import cscompiler.helpers.Printer;
 import cscompiler.ast.*;
-import cscompiler.components.CSPrinter_Type;
-import cscompiler.components.CSPrinter_Class;
+import cscompiler.printer.CSPrinter_Type;
+import cscompiler.printer.CSPrinter_Class;
 
 /**
 	A class that prints actual C# code from a C# AST
@@ -52,10 +52,8 @@ class CSPrinter extends Printer {
 		}
 		
 		switch topLevel.def {
-			case CSTopLevelClass(c):
-				printClass(c);
-			case CSTopLevelEnum(e):
-				printEnum(e);
+			case CSTopLevelClass(c): printClass(c);
+			case CSTopLevelEnum(e): printEnum(e);
 		}
 		
 		if(topLevel.nameSpace != null) {
@@ -69,6 +67,10 @@ class CSPrinter extends Printer {
 	}
 	
 	public function printEnum(enm: CSEnum) {
+		// TODO
+	}
+	
+	public function printField(field: CSField) {
 		// TODO
 	}
 	

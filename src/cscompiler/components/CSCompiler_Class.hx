@@ -1,10 +1,11 @@
 package cscompiler.components;
 
 #if(macro || cs_runtime)
+import cscompiler.ast.*;
+import cscompiler.ast.CSFunction.CSFunctionReturnKind;
+
 import haxe.macro.Type;
 import haxe.display.Display.MetadataTarget;
-
-import cscompiler.ast.*;
 
 import reflaxe.BaseCompiler;
 import reflaxe.data.ClassVarData;
@@ -13,6 +14,7 @@ import reflaxe.input.ClassHierarchyTracker;
 
 using reflaxe.helpers.NameMetaHelper;
 using reflaxe.helpers.SyntaxHelper;
+using reflaxe.helpers.TypeHelper;
 
 /**
 	The component responsible for compiling Haxe
@@ -48,7 +50,8 @@ class CSCompiler_Class extends CSCompiler_Base {
 	/**
 		Implementation of `CSCompiler.compileClassImpl`.
 	**/
-	public function compile(classType: ClassType, varFields: Array<ClassVarData>, funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
+	public function compile(classType: ClassType, varFields: Array<ClassVarData>,
+			funcFields: Array<ClassFuncData>): Null<CSTopLevel> {
 		// Temp fix for CSType return
 		return null;
 		
@@ -61,16 +64,16 @@ class CSCompiler_Class extends CSCompiler_Base {
 		// Basic declaration
 		if(classType.superClass != null) {
 			compiler.addModuleTypeForCompilation(TClassDecl(classType.superClass.t));
-			for (typeParam in classType.superClass.params) {
+			for(typeParam in classType.superClass.params) {
 				compiler.addTypeForCompilation(typeParam);
 			}
 			
 			// TODO superclass
 		}
 		
-		for (inter in classType.interfaces) {
+		for(inter in classType.interfaces) {
 			compiler.addModuleTypeForCompilation(TClassDecl(inter.t));
-			for (typeParam in inter.params) {
+			for(typeParam in inter.params) {
 				compiler.addTypeForCompilation(typeParam);
 			}
 			
@@ -79,10 +82,10 @@ class CSCompiler_Class extends CSCompiler_Base {
 		
 		// TODO when reflaxe will provide a field iterator, we'll use that
 		// Instead of querying varFields and funcFields
-		for (v in varFields) {
+		for(v in varFields) {
 			compileVariable(v);
 		}
-		for (f in funcFields) {
+		for(f in funcFields) {
 			compileFunction(f, classType);
 		}
 		
@@ -109,7 +112,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 		
 		// Compile expression
 		final e = field.expr();
-		final csExpr = compiler.compileClassVarExpr(e);
+		final csExpr = e != null ? compiler.compileClassVarExpr(e) : null;
 		
 		// TODO handle getters/setters
 		
@@ -157,7 +160,10 @@ class CSCompiler_Class extends CSCompiler_Base {
 				csFields.push({
 					name: name,
 					modifiers: modifiers,
-					kind: CSVar(compiler.compileType(field.type, field.pos), compiler.compileClassVarExpr(e))
+					kind: CSVar(
+						compiler.compileType(field.type, field.pos),
+						compiler.compileClassVarExpr(e)
+					)
 				});
 			} else {
 				// TODO Is this supposed to happen?
@@ -169,8 +175,14 @@ class CSCompiler_Class extends CSCompiler_Base {
 				compiler.compileFunctionArgument(a.type, a.getName(), field.pos, a.opt, a.expr);
 			});
 			
-			// Compile return type
-			final ret = isConstructor ? null : compiler.compileType(f.ret, field.pos);
+			final returnKind = if(isConstructor) {
+				Constructor;
+			} else if(f.ret.isVoid()) {
+				ReturnVoid;
+			} else {
+				// Compile return type if not a constructor or void
+				ReturnType(compiler.compileType(f.ret, field.pos));
+			}
 			
 			// Compile expression
 			final statement = f.expr != null ? compiler.compileClassFuncExpr(f.expr) : null;
@@ -179,7 +191,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 				name: name,
 				modifiers: modifiers,
 				kind: CSMethod({
-					ret: ret,
+					returnKind: returnKind,
 					args: arguments,
 					statement: statement
 				})
@@ -199,9 +211,11 @@ class CSCompiler_Class extends CSCompiler_Base {
 			modifiers.push(CSStatic);
 		} else {
 			// Add virtual if @:virtual meta OR has child override
-			if(field.hasMeta(":virtual") || ClassHierarchyTracker.funcHasChildOverride(classType, field, false)) {
+			if(field.hasMeta(":virtual")
+				|| ClassHierarchyTracker.funcHasChildOverride(classType, field, false)) {
 				modifiers.push(CSVirtual);
-			} else if(field.hasMeta(":override") || ClassHierarchyTracker.getParentOverrideChain(f).length > 0) {
+			} else if(field.hasMeta(":override")
+				|| ClassHierarchyTracker.getParentOverrideChain(f).length > 0) {
 				modifiers.push(CSOverride);
 			}
 		}

@@ -15,7 +15,7 @@ import haxe.macro.Type.Ref;
 **/
 enum CSType {
 	/**
-			 	Both haxe TInst and TEnum will be transpiled to this because
+		Both haxe TInst and TEnum will be transpiled to this because
 		Haxe enum instances will become C# class instances anyway
 	**/
 	CSInst(typePath: CSTypePath, params: Array<CSType>);
@@ -34,11 +34,16 @@ enum CSType {
 	CSArray(typePath: CSTypePath, params: Array<CSType>);
 	
 	/**
-		Function type, that may be translated into
-		an `Action<T1,T2,...>` or `Func<T1,T2,...>`
-		when used as an object type.
+		Function type that may be translated into `Func<T1,T2,...>` when
+		used as an object type.
 	**/
 	CSFunction(args: Array<CSArg>, ret: CSType);
+	
+	/**
+		Function type with no return type that may be translated into an
+		`Action<T1,T2,...>` when used as an object type.
+	**/
+	CSFunctionNoReturn(args: Array<CSArg>);
 	
 	/**
 		A C# value type (primitives like `int`, `bool`... or `struct` types) type. Optionally nullable (`int?` etc...)

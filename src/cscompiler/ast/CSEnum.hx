@@ -11,7 +11,5 @@ import haxe.macro.Type;
 @:structInit
 class CSEnum {
 	public var name(default, null): String;
-	
-	public var haxeType(default, null): Type;
 }
 #end
