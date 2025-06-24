@@ -1,3 +1,0 @@
-namespacestyle_pascal_Main.cs
-build.csproj
-HaxeBoot.cs

@@ -254,7 +254,7 @@ function executeTests(testDir: String, hxmlFiles: Array<String>): Bool {
 			"-cp " + testDir,
 			"--custom-target csharp=" + getOutputDirectory(testDir, outputSubDir),
 			"-D " + systemNameDefine,
-			"-D reflaxe_no_generated_metadata", // Don't generate metadata in _GeneratedFiles.txt
+			"-D reflaxe.dont_output_metadata_id", // Don't generate `id` in _GeneratedFiles.json
 			"\"" + absPath + "\""
 		];
 
