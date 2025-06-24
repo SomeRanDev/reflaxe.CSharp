@@ -1,9 +1,9 @@
 {
 	"lineEnds": {
 		"leftCurly": "after",
-		"rightCurly": "before",
+		"rightCurly": "both",
 		"objectLiteralCurly": {
-			"leftCurly": "after"
+			"leftCurly": "none"
 		},
 		"emptyCurly": "break"
 	},
@@ -17,13 +17,13 @@
 		"caseBody": "same"
 	},
 	"indentation": {
-		"trailingWhitespace": false,
+		"trailingWhitespace": true,
 		"character": "\t"
 	},
 	"emptyLines": {
 		"enumAbstractEmptyLines": {
 			"beginType": 0,
-			"endType": 0,
+			"endType": 1,
 			"betweenVars": 0,
 			"afterVars": 1,
 			"betweenFunctions": 1,
@@ -34,6 +34,8 @@
 			"betweenImports": 1,
 			"beforeUsing": 1
 		},
+		"betweenTypes": 1,
+		"betweenSingleLineTypes": 1,
 		"maxAnywhereInFile": 1
 	},
 	"whitespace": {
