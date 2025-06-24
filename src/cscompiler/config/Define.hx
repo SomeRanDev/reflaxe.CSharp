@@ -38,7 +38,9 @@ enum abstract Define(String) from String to String {
 		`-D csproj` does nothing when this is defined.
 	**/
 	var D_NoCsproj = "no_csproj";
-} /**
+}
+
+/**
 	A class containing static extension functions for `Define`.
 
 	Should be used like this:
@@ -48,7 +50,6 @@ enum abstract Define(String) from String to String {
 	}
 	```
 **/
-
 class DefineTools {
 	/**
 		Checks if the define is defined using `Context.defined`.

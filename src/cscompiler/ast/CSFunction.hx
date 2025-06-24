@@ -18,8 +18,9 @@ class CSFunction {
 		this.returnKind = returnKind;
 		this.statement = statement;
 	}
-} enum CSFunctionReturnKind {
+}
 
+enum CSFunctionReturnKind {
 	Constructor;
 	ReturnVoid;
 	ReturnType(returnType: CSType);

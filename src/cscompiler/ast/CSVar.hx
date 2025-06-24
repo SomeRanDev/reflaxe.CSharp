@@ -27,8 +27,9 @@ class CSVar {
 		this.name = name;
 		this.type = type;
 	}
-} enum CSVarType {
+}
 
+enum CSVarType {
 	Infer;
 	KnownType(type: CSType);
 }

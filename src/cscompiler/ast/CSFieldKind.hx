@@ -12,8 +12,9 @@ enum CSFieldKind {
 	
 	// TODO will we need that?
 	CSProp(type: CSType, get: Null<CSStatement>, set: Null<CSStatement>);
-} enum CSFieldVarType {
+}
 
+enum CSFieldVarType {
 	Infer;
 	KnownType(type: CSType);
 }

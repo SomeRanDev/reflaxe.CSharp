@@ -18,8 +18,9 @@ class CSTopLevel {
 		this.def = def;
 		this.nameSpace = nameSpace;
 	}
-} enum CSTopLevelDef {
+}
 
+enum CSTopLevelDef {
 	CSTopLevelClass(c: CSClass);
 	CSTopLevelEnum(e: CSEnum);
 }

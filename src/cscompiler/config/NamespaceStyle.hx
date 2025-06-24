@@ -6,10 +6,11 @@ package cscompiler.config;
 enum NamespaceStyle {
 	Default;
 	Pascal;
-} /**
+}
+
+/**
 	Converts a `String` from a define to the `NamespaceStyle` enum.
 **/
-
 function fromString(defineValue: String) {
 	return switch(defineValue.toLowerCase()) {
 		case "pascal": Pascal;

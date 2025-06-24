@@ -80,8 +80,9 @@ enum CSExprDef {
 		A direct piece of C# code injected from Haxe.
 	**/
 	CSInject(entries: Array<CSInjectEntry>);
-} enum CSInjectEntry {
+}
 
+enum CSInjectEntry {
 	Code(csCode: String);
 	Expression(statement: CSExpr);
 }
