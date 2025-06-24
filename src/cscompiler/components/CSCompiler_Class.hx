@@ -163,7 +163,7 @@ class CSCompiler_Class extends CSCompiler_Base {
 			final arguments = f.args.map(a -> {
 				// For now we don't take advantage of C# overload.
 				// let's just make it work, then we'll see what we do about it afterwards
-				compiler.compileFunctionArgument(a.type, a.name, field.pos, a.opt, a.expr);
+				compiler.compileFunctionArgument(a.type, a.getName(), field.pos, a.opt, a.expr);
 			});
 
 			// Compile return type

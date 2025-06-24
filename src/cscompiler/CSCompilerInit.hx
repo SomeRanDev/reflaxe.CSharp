@@ -25,7 +25,7 @@ class CSCompilerInit {
 			fileOutputType: FilePerClass,
 			reservedVarNames: reservedNames(),
 			targetCodeInjectionName: "__cs__",
-			smartDCE: true,
+			manualDCE: true,
 			customStdMeta: [":csStd"],
 			trackUsedTypes: true,
 			allowMetaMetadata: true,

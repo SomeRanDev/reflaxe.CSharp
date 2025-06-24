@@ -8,7 +8,6 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.TypeTools;
 
-import reflaxe.compiler.EverythingIsExprSanitizer;
 import reflaxe.helpers.OperatorHelper;
 
 using reflaxe.helpers.NameMetaHelper;

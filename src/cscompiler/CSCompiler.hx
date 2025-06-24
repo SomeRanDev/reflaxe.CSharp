@@ -18,7 +18,6 @@ import reflaxe.data.EnumOptionData;
 import reflaxe.helpers.Context;
 import reflaxe.output.DataAndFileInfo;
 import reflaxe.output.StringOrBytes;
-import reflaxe.optimization.ExprOptimizer;
 
 using reflaxe.helpers.SyntaxHelper;
 using reflaxe.helpers.ModuleTypeHelper;
@@ -278,10 +277,6 @@ namespace Haxe {
 	}
 
 	public function compileClassVarExpr(expr: TypedExpr): Null<CSExpr> {
-
-		// TODO: do we need to unwrap and optimize in that case?
-		//final exprs = ExprOptimizer.optimizeAndUnwrap(expr);
-
 		return compileToCSExpr(expr);
 	}
 
