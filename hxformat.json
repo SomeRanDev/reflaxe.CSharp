@@ -17,7 +17,7 @@
 		"caseBody": "same"
 	},
 	"indentation": {
-		"trailingWhitespace": true,
+		"trailingWhitespace": false,
 		"character": "\t"
 	},
 	"emptyLines": {
