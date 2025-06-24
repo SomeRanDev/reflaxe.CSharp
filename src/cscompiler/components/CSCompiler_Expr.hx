@@ -4,14 +4,11 @@ package cscompiler.components;
 import cscompiler.ast.*;
 import cscompiler.ast.CSExprDef.CSInjectEntry;
 import cscompiler.ast.CSStatement;
-import cscompiler.ast.CSVar.CSVarType;
 
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import haxe.macro.TypeTools;
 
 import reflaxe.compiler.TargetCodeInjection;
-import reflaxe.helpers.OperatorHelper;
 
 using reflaxe.helpers.ModuleTypeHelper;
 using reflaxe.helpers.NameMetaHelper;
@@ -462,7 +459,7 @@ class CSCompiler_Expr extends CSCompiler_Base {
 						final haxeType = {
 							#if macro
 							// This function does not exist outside of "macro" target.
-							TypeTools.fromModuleType(maybeModuleType);
+							haxe.macro.TypeTools.fromModuleType(maybeModuleType);
 							#else
 							throw "Impossible";
 							#end
@@ -495,32 +492,6 @@ class CSCompiler_Expr extends CSCompiler_Base {
 					null;
 				}
 		}
-	}
-	
-	/**
-		Generate a block scope from an expression.
-
-		If the typed expression is `TypedExprDef.TBlock`, then each
-		sub-expression is compiled on a new line.
-
-		Otherwise, the expression is compiled normally.
-
-		Each line of the output is preemptively tabbed.
-	**/
-	function toIndentedScope(e: TypedExpr): String {
-		return "";
-		/*
-			var el = switch(e.expr) {
-				case TBlock(el): el;
-				case _: [e];
-			}
-
-			return if(el.length == 0) {
-				"";
-			} else {
-				compiler.compileExpressionsIntoLines(el).tab();
-			}
-		 */
 	}
 	
 	/**
@@ -626,87 +597,6 @@ class CSCompiler_Expr extends CSCompiler_Base {
 				def: CSArrayDecl(elementExprs)
 			}
 		];
-	}
-	
-	/**
-		Generate an expression given a `Unop` and typed expression (from `TypedExprDef.TUnop`).
-	**/
-	function unopToCS(op: Unop, e: TypedExpr, isPostfix: Bool): String {
-		final csExpr = compileToCSStatement(e);
-		final operatorStr = OperatorHelper.unopToString(op);
-		return isPostfix ? (csExpr + operatorStr) : (operatorStr + csExpr);
-	}
-	
-	/**
-		Generate an expression given a `FieldAccess` and typed expression (from `TypedExprDef.TField`).
-	**/
-	function fieldAccessToCS(e: TypedExpr, fa: FieldAccess): String {
-		final nameMeta: NameAndMeta = switch(fa) {
-			case FInstance(_, _, classFieldRef): classFieldRef.get();
-			case FStatic(_, classFieldRef): classFieldRef.get();
-			case FAnon(classFieldRef): classFieldRef.get();
-			case FClosure(_, classFieldRef): classFieldRef.get();
-			case FEnum(_, enumField): enumField;
-			case FDynamic(s): {
-					name: s,
-					meta: null
-				};
-		}
-		
-		return if(nameMeta.hasMeta(":native")) {
-			nameMeta.getNameOrNative();
-		} else {
-			final name = compiler.compileVarName(nameMeta.getNameOrNativeName());
-			
-			// Check if a special field access and intercept.
-			switch(fa) {
-				case FStatic(clsRef, cfRef): {
-						final cf = cfRef.get();
-						final className = compiler.compileClassName(clsRef.get());
-						// TODO: generate static access
-						// return ...
-					}
-				case FEnum(_, enumField): {
-						// TODO: generate enum access
-						// return ...
-					}
-				case _:
-			}
-			
-			final csExpr = compileToCSStatement(e);
-			
-			// Check if a special field access that requires the compiled expression.
-			switch(fa) {
-				case FAnon(classFieldRef): {
-						// TODO: generate anon struct access
-						// return ...
-					}
-				case _:
-			}
-			
-			csExpr + "." + name;
-		}
-	}
-	
-	function compileIf(condExpr: TypedExpr, ifContentExpr: TypedExpr, elseExpr: Null<TypedExpr>) {
-		var result = "if(" + compileToCSStatement(condExpr.unwrapParenthesis()) + ") {\n";
-		result += toIndentedScope(ifContentExpr);
-		if(elseExpr != null) {
-			switch(elseExpr.expr) {
-				case TIf(condExpr2, ifContentExpr2, elseExpr2): {
-						result += "\n} else " + compileIf(condExpr2, ifContentExpr2, elseExpr2);
-					}
-				case _:
-					{
-						result += "\n} else {\n";
-						result += toIndentedScope(elseExpr);
-						result += "\n}";
-					}
-			}
-		} else {
-			result += "\n}";
-		}
-		return result;
 	}
 	
 	function compileFuncArgs(args: Array<{

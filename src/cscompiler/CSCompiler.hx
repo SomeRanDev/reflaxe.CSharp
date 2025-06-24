@@ -153,26 +153,6 @@ class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSState
 	}
 	
 	/**
-		Returns the content generated for the `HaxeBoot.cs`.
-
-		TODO:
-			Store `args` to use with `Sys.args()` later.
-	**/
-	function haxeBootContent(csCode: String) {
-		return StringTools.trim(
-			'
-namespace Haxe {
-	class HaxeBoot {
-		static void Main(string[] args) {
-			${csCode};
-		}
-	}
-}
-		'
-		);
-	}
-	
-	/**
 		Adds a .csproj file to the output directory.
 
 		If the Define `no_csproj` is specified, then nothing is added.

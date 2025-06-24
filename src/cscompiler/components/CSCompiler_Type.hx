@@ -8,7 +8,6 @@ import haxe.macro.Type;
 
 import cscompiler.ast.*;
 import cscompiler.config.Define;
-import cscompiler.config.NamespaceStyle;
 import cscompiler.config.NamespaceStyle.fromString as NamespaceStyle_fromString;
 import cscompiler.helpers.StringTools;
 

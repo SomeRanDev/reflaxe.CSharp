@@ -40,7 +40,6 @@ class CSCompiler_Class extends CSCompiler_Base {
 	function init(classType: ClassType) {
 		csFields = [];
 		
-		final className = classType.name;
 		csClassName = compiler.compileClassName(classType);
 		csNameSpace = compiler.typeComp.getNameSpace(classType);
 	}

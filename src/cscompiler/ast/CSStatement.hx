@@ -1,8 +1,6 @@
 package cscompiler.ast;
 
 #if(macro || cs_runtime)
-import cscompiler.ast.CSExpr;
-
 import haxe.macro.Type;
 
 /**

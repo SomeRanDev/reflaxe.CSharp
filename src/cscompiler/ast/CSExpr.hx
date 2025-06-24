@@ -1,9 +1,6 @@
 package cscompiler.ast;
 
 #if(macro || cs_runtime)
-import cscompiler.ast.CSTypePath;
-
-import haxe.macro.Expr;
 import haxe.macro.Type;
 
 /**

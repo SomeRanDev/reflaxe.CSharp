@@ -1,8 +1,6 @@
 package cscompiler.ast;
 
 #if(macro || cs_runtime)
-import haxe.macro.Type;
-
 /**
 	Represents an enum in C#.
 
