@@ -13,7 +13,8 @@
 		"tryBody": "same",
 		"tryCatch": "same",
 		"functionBody": "next",
-		"anonFunctionBody": "same"
+		"anonFunctionBody": "same",
+		"caseBody": "same"
 	},
 	"indentation": {
 		"trailingWhitespace": true,
@@ -54,6 +55,10 @@
 				"openingPolicy": "none",
 				"closingPolicy": "onlyAfter"
 			},
+			"forLoopParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter"
+			},
 			"sharpConditionParens": {
 				"openingPolicy": "none",
 				"closingPolicy": "none"
@@ -76,6 +81,50 @@
 				"closingPolicy": "onlyAfter",
 				"removeInnerWhenEmpty": true
 			}
+		},
+		"bracesConfig": {
+			"anonTypeBraces": {
+				"openingPolicy": "before",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"blockBraces": {
+				"openingPolicy": "before",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"objectLiteralBraces": {
+				"openingPolicy": "before",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"typedefBraces": {
+				"openingPolicy": "before",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"unknownBraces": {
+				"openingPolicy": "noneBefore",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			}
 		}
+	},
+	"wrapping": {
+		"callParameter": {
+			"defaultWrap": "noWrap",
+			"rules": [
+				{
+					"conditions": [
+						{
+							"cond": "exceedsMaxLineLength",
+							"value": 1
+						}
+					],
+					"type": "onePerLine"
+				}
+			]
+		},
+		"maxLineLength": 100
 	}
 }
