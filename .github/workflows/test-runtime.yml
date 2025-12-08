@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Runtime & Null Safety
     steps:
-      - uses: krdlab/setup-haxe@v1
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: latest
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup GCC
         uses: egor-tensin/setup-gcc@v1
