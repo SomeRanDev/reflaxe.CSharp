@@ -184,7 +184,7 @@ class CSCompiler extends reflaxe.GenericCompiler<CSTopLevel, CSTopLevel, CSState
 
 <PropertyGroup>
 	<OutputType>Exe</OutputType>
-	<TargetFramework>net6.0</TargetFramework>
+	<TargetFramework>${D_Csproj_TargetFramework.getValueOr("net8.0")}</TargetFramework>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<StartupObject>Haxe.HaxeBoot</StartupObject>

@@ -17,6 +17,15 @@ enum abstract Define(String) from String to String {
 		This will be ignored when `-D no_csproj` is defined.
 	**/
 	var D_Csproj = "csproj";
+
+	/**
+		`-D csproj.target_framework=[net version]`
+
+		Sets the value of `<TargetFramework>` in the `.csproj`.
+
+		By default, this value is `net8.0`.
+	**/
+	var D_Csproj_TargetFramework = "csproj.target_framework";
 	
 	/**
 		`-D namespace_style=[default|pascal]`
@@ -57,7 +66,7 @@ class DefineTools {
 	public static function isDefined(self: Define): Bool {
 		return Context.defined(self);
 	}
-	
+
 	/**
 		Returns the value of the define using `Context.definedValue`.
 		If it isn't defined, `null` is returned.
@@ -65,7 +74,7 @@ class DefineTools {
 	public static function getValueOrNull(self: Define): Null<String> {
 		return Context.definedValue(self);
 	}
-	
+
 	/**
 		Returns the value of the define using `Context.definedValue`.
 		Throws an error if the define does not exist.
@@ -76,6 +85,15 @@ class DefineTools {
 			throw "DefineTools.getValue called on undefined Define.";
 		}
 		return result;
+	}
+
+	/**
+		Returns the value of the define using `Context.definedValue`.
+		If there isn't a value defined, returns the value of `or`.
+	**/
+	public static function getValueOr(self: Define, or: String): String {
+		final result = getValueOrNull(self);
+		return result != null ? result : or;
 	}
 }
 #end
