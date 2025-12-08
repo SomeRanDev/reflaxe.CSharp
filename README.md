@@ -10,7 +10,7 @@ A remake of the Haxe/C# target written entirely within Haxe using Reflaxe.
 
 If this project isn't on haxelib yet, or you'd like to use the development version, use `haxelib git` on the nightly branch.
 ```sh
-haxelib git csharp https://github.com/RobertBorghese/reflaxe.CSharp nightly
+haxelib git csharp https://github.com/SomeRanDev/reflaxe.CSharp nightly
 ```
 
 Here's a simple `.hxml` template to get you started!
