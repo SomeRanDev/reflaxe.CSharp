@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
-            5.0.x
+            8.0.x
 
       - name: Install & Check Haxe
         run: haxe -version
